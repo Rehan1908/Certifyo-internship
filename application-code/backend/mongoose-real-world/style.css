@@ -1,0 +1,379 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+/* Base styles and typography */
+:root {
+  /* Core colors */
+  --primary: #00684A;
+  --primary-light: #00ED64;
+  --primary-dark: #004d3a;
+  --secondary: #023430;
+  --accent: #13aa52;
+  
+  /* Neutral palette */
+  --dark: #2d2d2d;
+  --medium: #616161;
+  --light: #f6f8fa;
+  --border: #e0e0e0;
+  --code-bg: #f8f9fa;
+  
+  /* Box shadows */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.07);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  color: var(--dark);
+  background-color: #fff;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Header styles */
+header {
+  position: relative;
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+header .subtitle {
+  font-size: 1.2rem;
+  color: var(--medium);
+}
+
+/* Main content sections */
+section {
+  margin-bottom: 4rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+section:last-child {
+  border-bottom: none;
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--secondary);
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 1.2rem;
+  color: var(--secondary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+/* Lists */
+ul, ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+ul li, ol li {
+  margin-bottom: 0.5rem;
+}
+
+/* Code blocks and inline code */
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  padding: 1rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  border-radius: 0 4px 4px 0;
+  box-shadow: var(--shadow-sm);
+}
+
+code {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9rem;
+  background-color: var(--code-bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  color: var(--primary-dark);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--dark);
+}
+
+/* Process flow styling */
+.process-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.step {
+  background-color: var(--light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary);
+}
+
+.step h3 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+/* Concept card styling */
+.concept-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.concept-card h3 {
+  color: var(--primary);
+  margin-top: 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.concept-card h4 {
+  color: var(--secondary);
+  margin-top: 1.25rem;
+}
+
+/* Info boxes */
+.info-box {
+  background-color: rgba(19, 170, 82, 0.08);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--accent);
+}
+
+.info-box h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--primary-dark);
+}
+
+/* Integration steps */
+.integration-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.integration-step {
+  background-color: var(--light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.integration-step h3 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.step-subtitle {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: var(--medium);
+  font-style: italic;
+}
+
+/* Detail boxes */
+.details-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.detail-box {
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.detail-box h4 {
+  margin-top: 0;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+/* Data flow styling */
+.data-flow {
+  background-color: var(--light);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.data-flow h3 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+}
+
+.flow-steps {
+  list-style: none;
+  padding: 0;
+}
+
+.flow-steps li {
+  position: relative;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  background-color: white;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-steps li::before {
+  content: "→";
+  position: absolute;
+  left: 0.75rem;
+  color: var(--primary-light);
+  font-weight: bold;
+}
+
+/* Middleware stack visualization */
+.middleware-stack {
+  background-color: var(--light);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.middleware-item {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.middleware-item:last-child {
+  margin-bottom: 0;
+}
+
+.middleware-item .path {
+  font-family: 'Fira Code', monospace;
+  background-color: var(--code-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 100px;
+  text-align: center;
+}
+
+.middleware-item .arrow {
+  padding: 0 1rem;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.middleware-item .handler {
+  flex: 1;
+}
+
+/* Footer */
+footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  text-align: center;
+  color: var(--medium);
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    padding: 1.5rem;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.6rem;
+  }
+  
+  h3 {
+    font-size: 1.3rem;
+  }
+  
+  .middleware-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .middleware-item .path {
+    width: 100%;
+  }
+}
+
+@media (max-width: 500px) {
+  body {
+    padding: 1rem;
+  }
+  
+  pre {
+    padding: 0.75rem;
+  }
+  
+  .step, .concept-card, .integration-step, .detail-box {
+    padding: 1rem;
+  }
+}

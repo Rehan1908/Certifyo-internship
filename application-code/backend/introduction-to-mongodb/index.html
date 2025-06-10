@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to MongoDB</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Introduction To Databases (MongoDB)</h1>
+    </header>
+
+    <section class="intro">
+        <p>A database is like a super-organized digital filing cabinet where your application keeps all its information. Instead of scattering files on someone's desktop, you store data in a database so you can:</p>
+        
+        <ul>
+            <li>Save data reliably (Create)</li>
+            <li>Look it up quickly (Read)</li>
+            <li>Make changes when things update (Update)</li>
+            <li>Remove it when you no longer need it (Delete)</li>
+        </ul>
+    </section>
+
+    <section class="database-features">
+        <h2>Database Features</h2>
+        
+        <h3>Structured storage:</h3>
+        <p>Just like folders and sub-folders, a database arranges data into tables (in SQL databases) or collections/documents (in NoSQL databases), so it's easy to find and manage.</p>
+        
+        <h3>Fast lookup:</h3>
+        <p>Databases build "indexes" (like an index in a book) to jump straight to the right page instead of reading everything from start to finish.</p>
+        
+        <h3>Safe transactions:</h3>
+        <p>When you need to make several changes at once—say, moving money from one bank account to another—the database makes sure all the steps succeed. If one step fails, it rolls everything back so you don't end up with half-completed work.</p>
+        
+        <h3>Multiple users:</h3>
+        <p>Many people or services can read and write at the same time without stepping on each other's toes, thanks to built-in locking and consistency controls.</p>
+    </section>
+
+    <section class="acid">
+        <h2>ACID Properties</h2>
+        <p>ACID is an acronym that describes four key guarantees most relational databases (and some NoSQL systems in transactional mode) provide to keep your data safe and correct:</p>
+        
+        <h3>Atomicity ("all or nothing")</h3>
+        <p><strong>What it means:</strong> A transaction (a group of one or more operations) either fully happens or doesn't happen at all.</p>
+        <p><strong>Why it matters:</strong> If you're transferring $100 from account A to account B, you don't want A debited without B being credited. Atomicity ensures that if any part of that transfer fails, the entire operation is rolled back as if nothing happened.</p>
+        
+        <h3>Consistency ("valid state only")</h3>
+        <p><strong>What it means:</strong> Every transaction moves the database from one valid state to another, respecting all the rules (constraints, cascades, triggers) you've defined.</p>
+        <p><strong>Why it matters:</strong> If your database says "orders must have a valid customer ID," consistency ensures you can't end up with an order pointing to a non-existent customer.</p>
+        
+        <h3>Isolation ("independent transactions")</h3>
+        <p><strong>What it means:</strong> Even if multiple transactions run at the same time, each one behaves as if it's running alone—without interference from others.</p>
+        <p><strong>Why it matters:</strong> Imagine two people trying to buy the last ticket. Isolation prevents them from both seeing "1 seat left" and both successfully reserving it—one will see the change made by the other and fail or retry.</p>
+        
+        <h3>Durability ("once done, it's done")</h3>
+        <p><strong>What it means:</strong> Once a transaction commits (completes successfully), its changes survive power outages, crashes, or errors. The database writes them to non-volatile storage before reporting success.</p>
+        <p><strong>Why it matters:</strong> If your server crashes right after you see "Payment successful," durability means you won't lose that payment record when it comes back up.</p>
+    </section>
+
+    <section class="database-types">
+        <h2>Types of Databases</h2>
+        
+        <h3>Relational (SQL) Databases</h3>
+        <ul>
+            <li><strong>Structure:</strong> Data lives in tables (rows & columns) with a fixed schema.</li>
+            <li><strong>Query Language:</strong> You use SQL (Structured Query Language) to define, read, and manipulate data.</li>
+            <li><strong>Use Cases:</strong> When you need strong consistency, complex joins, and multi-step transactions—e.g., financial systems, inventory management.</li>
+        </ul>
+        
+        <h3>Non-Relational (NoSQL) Databases</h3>
+        <ul>
+            <li><strong>Structure:</strong> Data is stored more flexibly—documents (JSON-like), key–value pairs, wide-column stores, or graphs.</li>
+            <li><strong>Querying:</strong> Often through library-specific APIs or simpler query languages.</li>
+            <li><strong>Use Cases:</strong> When you need to handle large volumes of unstructured or rapidly changing data—e.g., real-time analytics, content management, social feeds.</li>
+        </ul>
+        
+        <h3>Comparison: PostgreSQL vs MongoDB</h3>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>PostgreSQL (SQL)</th>
+                    <th>MongoDB (NoSQL)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Schema</strong></td>
+                    <td>
+                        <p>Rigid, predefined:</p>
+                        <pre><code class="language-sql">CREATE TABLE users (
+  id   SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL
+);</code></pre>
+                    </td>
+                    <td>
+                        <p>Flexible, per-document:</p>
+                        <pre><code class="language-js">// No upfront schema—you can insert any fields you like:
+db.users.insertOne({
+  _id: ObjectId(),
+  name: "Alice",
+  email: "alice@example.com",
+  signupDate: new Date(),
+  preferences: { theme: "dark" }
+});</code></pre>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Insert</strong></td>
+                    <td>
+                        <pre><code class="language-sql">INSERT INTO users (name, email)
+VALUES ('Bob', 'bob@example.com');</code></pre>
+                    </td>
+                    <td>
+                        <pre><code class="language-js">// Insert a new document
+db.users.insertOne({
+  name: "Bob",
+  email: "bob@example.com"
+});</code></pre>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Query</strong></td>
+                    <td>
+                        <pre><code class="language-sql">-- Get all users
+SELECT * FROM users;
+
+-- Get one user by id
+SELECT * FROM users
+WHERE id = 123;</code></pre>
+                    </td>
+                    <td>
+                        <pre><code class="language-js">// Get all documents
+db.users.find().toArray();
+
+// Find one by its ObjectId
+db.users.findOne({ _id: ObjectId("...") });</code></pre>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Update</strong></td>
+                    <td>
+                        <pre><code class="language-sql">-- Change a user's name
+UPDATE users
+SET name = 'Robert'
+WHERE email = 'bob@example.com';</code></pre>
+                    </td>
+                    <td>
+                        <pre><code class="language-js">// Update matching document
+db.users.updateOne(
+  { email: "bob@example.com" },
+  { $set: { name: "Robert" } }
+);</code></pre>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Delete</strong></td>
+                    <td>
+                        <pre><code class="language-sql">-- Delete a user
+DELETE FROM users
+WHERE id = 123;</code></pre>
+                    </td>
+                    <td>
+                        <pre><code class="language-js">// Remove matching document
+db.users.deleteOne({ email: "bob@example.com" });</code></pre>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="nodejs-nosql">
+        <h2>Why Web Developers Using Node.js Choose NoSQL</h2>
+        
+        <h3>Natural JSON Handling</h3>
+        <ul>
+            <li><strong>JavaScript everywhere:</strong> Node.js speaks JSON natively, and so do document stores like MongoDB or CouchDB. You can send a JavaScript object straight from your server into the database without translation.</li>
+            <li><strong>Less impedance mismatch:</strong> No need to map objects to tables—your data shape in code is the same shape in storage.</li>
+        </ul>
+        
+        <h3>Flexible Schemas</h3>
+        <ul>
+            <li><strong>Evolve quickly:</strong> You don't have to predefine every field in a rigid table schema. If your app needs a new property on some documents, you can just start writing it.</li>
+            <li><strong>Heterogeneous data:</strong> Great for things like user profiles where some users might have extra settings or social links that others don't.</li>
+        </ul>
+        
+        <h3>Horizontal Scalability</h3>
+        <ul>
+            <li><strong>Sharding made simple:</strong> Many NoSQL systems (e.g. MongoDB, Cassandra) let you spread data across multiple servers automatically. As your user base grows, you just add more nodes.</li>
+            <li><strong>High write throughput:</strong> Designed to ingest and serve massive streams of data (think real-time chat messages or analytics events).</li>
+        </ul>
+        
+        <h3>Performance for Common Web Patterns</h3>
+        <ul>
+            <li><strong>Fast key–value lookups:</strong> Session stores, caching layers, or counter increments are lightning-fast.</li>
+            <li><strong>Denormalized data:</strong> By embedding related data together (e.g. comments inside a blog post document), you can fetch everything you need in one query—no joins.</li>
+        </ul>
+        
+        <h3>Rich Ecosystem & Tooling</h3>
+        <ul>
+            <li><strong>Mongoose & ODMs:</strong> Libraries like Mongoose give you schema validation, middleware hooks, and query builders tailored to Node.js.</li>
+            <li><strong>Cloud services:</strong> Managed NoSQL offerings (MongoDB Atlas, AWS DynamoDB, Google Firestore) let you spin up a database instantly without sysadmin work.</li>
+        </ul>
+        
+        <h3>Ideal for Microservices Architectures</h3>
+        <ul>
+            <li><strong>Autonomous data domains:</strong> Each microservice can pick the NoSQL store that fits its data shape, without coordinating a central schema.</li>
+            <li><strong>Event sourcing & streams:</strong> NoSQL systems integrate well with message queues and event logs, fitting the asynchronous patterns in Node.</li>
+        </ul>
+    </section>
+
+    <section class="mongodb">
+        <h2>What is MongoDB?</h2>
+        <p>MongoDB is a document-based NoSQL database that stores data in flexible, JSON-like documents rather than rigid tables and rows. Here's what makes it special:</p>
+        
+        <h3>Comparison to Other NoSQL Types</h3>
+        <ul>
+            <li><strong>Key–Value Stores (Redis, DynamoDB):</strong> Blazing fast for simple lookups but limited querying and no aggregation pipeline.</li>
+            <li><strong>Wide-Column Stores (Cassandra):</strong> Excellent for write-heavy workloads with linear scale, but harder to model nested or relational data and lacks rich ad-hoc queries.</li>
+            <li><strong>Graph Databases (Neo4j):</strong> Best for deeply connected data—overkill if you don't need graph traversals.</li>
+        </ul>
+        <p>MongoDB sits in the sweet spot when you need a flexible document model, powerful querying and analytics, transaction safety, and easy scaling—all with first-class JavaScript support.</p>
+        
+        <h3>Documents & Collections</h3>
+        <ul>
+            <li><strong>Documents:</strong> Think of each record as a JSON object—called a "document"—with key/value pairs.</li>
+            <li><strong>Collections:</strong> Documents live in "collections," which are like tables but don't require every document to share the same fields.</li>
+        </ul>
+        
+        <h3>BSON Under the Hood</h3>
+        <p>MongoDB actually stores data in BSON (Binary JSON), an efficient, binary-encoded format that supports rich data types (dates, binary data, even embedded documents and arrays).</p>
+        
+        <h3>Schema-Less & Flexible</h3>
+        <p>You don't have to predefine a schema. Different documents in the same collection can have different sets of fields—and you can evolve your data model on the fly.</p>
+        
+        <h3>Powerful Queries</h3>
+        <ul>
+            <li>Query your documents with a rich set of operators ($match, $gt, $in, $regex, etc.).</li>
+            <li>You can filter, sort, group, project specific fields, and even perform aggregations (like SQL's GROUP BY) using the Aggregation Framework.</li>
+        </ul>
+        
+        <h3>Indexing & Performance</h3>
+        <p>Create indexes on any field (including nested fields and array elements) to keep lookups fast, even at large scale.</p>
+        
+        <h3>High Availability & Scalability</h3>
+        <ul>
+            <li><strong>Replica Sets:</strong> Automatic failover by maintaining multiple copies of your data.</li>
+            <li><strong>Sharding:</strong> Distribute data across many servers to handle huge datasets and high write loads.</li>
+        </ul>
+        
+        <h3>ACID Transactions</h3>
+        <p>Supports multi-document transactions, so you can still get "all-or-nothing" guarantees when updating several related documents at once.</p>
+        
+        <h3>Ecosystem & Tools</h3>
+        <ul>
+            <li>Official drivers for all major languages (Node.js, Python, Java, etc.).</li>
+            <li>MongoDB Compass: A GUI for exploring your data.</li>
+            <li>Atlas: MongoDB's fully-managed cloud service.</li>
+        </ul>
+    </section>
+
+    <section class="mongodb-setup">
+        <h2>Setting Up MongoDB</h2>
+        
+        <h3>Local Installation on Windows</h3>
+        <ol>
+            <li>
+                <h4>Download the MSI Installer</h4>
+                <p>Go to the MongoDB Community download page: <a href="https://www.mongodb.com/try/download/community" target="_blank">https://www.mongodb.com/try/download/community</a></p>
+                <p>Select Windows, the latest MSI package, and click Download.</p>
+            </li>
+            <li>
+                <h4>Run the Installer</h4>
+                <p>Double-click the downloaded .msi.</p>
+                <p>Choose the "Complete" setup type.</p>
+                <p>Check "Install MongoDB as a Service" so it starts automatically on boot.</p>
+                <p>Select "Install MongoDB Compass" for a GUI explorer.</p>
+            </li>
+            <li>
+                <h4>Add MongoDB to your PATH</h4>
+                <p>Open Start → Settings → System → About → Advanced system settings.</p>
+                <p>Click Environment Variables…, under "System variables" find Path, then Edit….</p>
+                <p>Add the folder where MongoDB was installed, for example: C:\Program Files\MongoDB\Server\6.0\bin</p>
+                <p>Click OK to close all dialogs.</p>
+            </li>
+            <li>
+                <h4>Start (or Restart) the MongoDB Service</h4>
+                <p>Open Services (Win+R → services.msc).</p>
+                <p>Find MongoDB Server, right-click and choose Start (or Restart if it's already running).</p>
+            </li>
+            <li>
+                <h4>Verify with the Mongo Shell</h4>
+                <p>Open a new Command Prompt (so it picks up your updated PATH).</p>
+                <p>Run: mongosh</p>
+                <p>At the prompt, type: db.version()</p>
+            </li>
+        </ol>
+        
+        <h3>MongoDB Atlas Setup</h3>
+        <ol>
+            <li>
+                <h4>Sign Up & Log In</h4>
+                <p>Go to <a href="https://www.mongodb.com/cloud/atlas" target="_blank">https://www.mongodb.com/cloud/atlas</a> and click Start Free.</p>
+                <p>Create an account with your email (or log in with Google/GitHub).</p>
+            </li>
+            <li>
+                <h4>Create a New Cluster</h4>
+                <p>Once in the Atlas dashboard, click Build a Cluster under "Create a New Cluster."</p>
+                <p>Choose Cloud Provider & Region:</p>
+                <ul>
+                    <li>Pick AWS, GCP, or Azure.</li>
+                    <li>Select a region geographically close to you (for lowest latency).</li>
+                </ul>
+                <p>Under Cluster Tier, choose the free "M0 Sandbox" tier if you're just experimenting.</p>
+                <p>Leave default settings for Additional Settings and click Create Cluster.</p>
+                <p>It takes a couple of minutes to spin up.</p>
+            </li>
+            <li>
+                <h4>Configure Network Access</h4>
+                <p>In the left sidebar, click Network Access.</p>
+                <p>Click Add IP Address:</p>
+                <ul>
+                    <li>To whitelist your current IP, choose "Allow Access from Anywhere" (0.0.0.0/0) for testing, or</li>
+                    <li>Click "Add My Current IP Address" to restrict to just your computer's IP.</li>
+                </ul>
+                <p>Save.</p>
+            </li>
+            <li>
+                <h4>Create a Database User</h4>
+                <p>In the sidebar, click Database Access.</p>
+                <p>Click Add New Database User.</p>
+                <p>Enter a Username and Password.</p>
+                <p>Under Database User Privileges, choose "Atlas admin" (for full access) or "Read and write to any database" for typical dev use.</p>
+                <p>Save the user credentials— you'll need them for your connection string.</p>
+            </li>
+            <li>
+                <h4>Obtain Your Connection String</h4>
+                <p>Go back to Clusters, and click the Connect button next to your new cluster.</p>
+                <p>Choose "Connect your application".</p>
+                <p>Copy the Connection String URI—it will look something like:</p>
+                <pre><code>mongodb+srv://&lt;username&gt;:&lt;password&gt;@cluster0.abcd1.mongodb.net/myFirstDatabase?retryWrites=true&w=majority</code></pre>
+                <p>Replace &lt;username&gt; and &lt;password&gt; with the user you created, and change myFirstDatabase to your desired database name.</p>
+            </li>
+        </ol>
+    </section>
+
+    <section class="mongodb-concepts">
+        <h2>MongoDB Core Concepts</h2>
+        
+        <h3>Collections</h3>
+        <p>In MongoDB, a collection is simply a grouping of documents—think of it like a table in a relational database, but without a fixed schema. Here's what that means in practice:</p>
+        <ul>
+            <li>
+                <strong>Holds similar items:</strong>
+                <p>A collection contains documents that represent the same "kind" of thing—for example, a users collection holds all user records, and an orders collection holds all order records.</p>
+            </li>
+            <li>
+                <strong>Schema-less grouping:</strong>
+                <p>Unlike a SQL table, you don't have to define columns up front. Each document in the collection can have whatever fields it needs—even if they're different from other documents in that same collection.</p>
+            </li>
+            <li>
+                <strong>Logical namespace:</strong>
+                <p>Collections live inside a database. You refer to them as db.collectionName, for example:</p>
+                <pre><code class="language-js">const users = db.collection("users");</code></pre>
+            </li>
+            <li>
+                <strong>Automatic creation:</strong>
+                <p>If you insert a document into a collection that doesn't yet exist, MongoDB will create that collection for you on the fly.</p>
+            </li>
+            <li>
+                <strong>Indexing & configuration:</strong>
+                <p>You can create indexes on any field within the documents of a collection to speed up queries, and you can tune options (like document validation rules) at the collection level.</p>
+            </li>
+        </ul>
+        
+        <h4>Analogy</h4>
+        <ul>
+            <li>Database: A filing cabinet</li>
+            <li>Collection: A drawer labeled "Users"</li>
+            <li>Document: A folder inside that drawer containing one user's info</li>
+        </ul>
+        <p>By organizing your data into collections, you keep your documents grouped in a logical, efficient way—making it easy to find, query, and manage related sets of data.</p>
+        
+        <h3>Documents</h3>
+        <p>A document in MongoDB is the basic unit of data—think of it like a JSON object (but stored in a binary form called BSON). It's roughly equivalent to a "row" in a SQL table, but with much more flexibility:</p>
+        
+        <h4>Key–Value Structure:</h4>
+        <p>A document is made up of fields (keys) and values. Values can be simple (strings, numbers, booleans) or complex (arrays, nested documents, dates, binary data).</p>
+        
+        <h4>Schema-less:</h4>
+        <p>You don't have to define in advance what fields a document must have. One document in a collection might have { name, email }, another can add { age, address }, and both coexist happily.</p>
+        
+        <h4>_id Field:</h4>
+        <p>Every document has a unique _id field (automatically generated unless you provide one). This acts as its primary key.</p>
+        
+        <pre><code class="language-js">{
+  _id: ObjectId("60e6f7a3c2a1b2d3e4f5a6b7"),
+  name: "Alice",
+  email: "alice@example.com",
+  signupDate: ISODate("2025-05-24T10:15:30Z"),
+  preferences: {
+    theme: "dark",
+    notifications: true
+  },
+  tags: ["admin", "beta-tester"]
+}</code></pre>
+        
+        <h4>Nesting & Arrays:</h4>
+        <p>Documents can embed other documents or arrays directly, letting you model related data in one place:</p>
+        
+        <pre><code class="language-js">{
+  orderId: 1234,
+  customer: { name: "Bob", email: "bob@example.com" },
+  items: [
+    { productId: "A1", qty: 2, price: 9.99 },
+    { productId: "B2", qty: 1, price: 19.95 }
+  ],
+  status: "shipped"
+}</code></pre>
+        
+        <h4>Why Documents Matter</h4>
+        <ul>
+            <li><strong>Natural fit for object-oriented code:</strong> Your in-memory objects map straight to documents—no tedious translations.</li>
+            <li><strong>Flexible data models:</strong> Easily evolve your schema by adding or removing fields at any time.</li>
+            <li><strong>Efficient reads:</strong> Fetch a whole document in one query, including nested data, without expensive joins.</li>
+        </ul>
+        <p>In short, a MongoDB document is a self-contained data record, stored as a JSON-like object, that gives you both structure and flexibility.</p>
+        
+        <h3>BSON</h3>
+        <p>BSON stands for Binary JSON—it's the on-disk, wire-format MongoDB uses to store and transmit documents. Here's what makes BSON special:</p>
+        
+        <ul>
+            <li>
+                <strong>Binary format:</strong> Unlike plain-text JSON, BSON is a compact, binary representation. That means it's faster for the database to read and write, and more efficient over the network.
+            </li>
+            <li>
+                <strong>Rich data types:</strong> JSON only has strings, numbers, booleans, arrays, and objects. BSON adds types like Date, Binary (for files or images), ObjectId (MongoDB's unique primary key), and even Decimal128 for high-precision decimals.
+            </li>
+            <li>
+                <strong>Self-describing documents:</strong> Each field in a BSON document is prefixed with a type identifier—so the reader always knows exactly how to interpret the next bytes.
+            </li>
+            <li>
+                <strong>Ordered fields:</strong> BSON preserves the order of fields in a document, which can be useful when you care about the sequence of keys.
+            </li>
+        </ul>
+        
+        <h4>How It Works in Practice</h4>
+        <p>You write JSON-style code:</p>
+        <pre><code class="language-js">db.users.insertOne({
+  name: "Alice",
+  signupDate: new Date(),        // BSON "Date" type
+  avatar: Binary(myImageData),   // BSON "Binary" type
+});</code></pre>
+        
+        <p>MongoDB converts it to BSON:</p>
+        <ul>
+            <li>"name" → 0x02 (string) + length + UTF-8 bytes</li>
+            <li>"signupDate" → 0x09 (date) + 64-bit integer</li>
+            <li>"avatar" → 0x05 (binary) + length + subtype + raw bytes</li>
+        </ul>
+        
+        <p>On retrieval, your driver converts it back to JavaScript types:</p>
+        <pre><code class="language-js">const user = await db.users.findOne({ name: "Alice" });
+console.log(user.signupDate instanceof Date);       // true
+console.log(user.avatar.buffer instanceof Buffer);  // true</code></pre>
+        <p>Because of BSON's efficiency and extra datatypes, MongoDB can handle rich, complex data more natively than plain JSON—while you, as the developer, still think in familiar JavaScript objects.</p>
+    </section>
+
+    <section class="mongodb-node">
+        <h2>Using MongoDB with Node.js</h2>
+        
+        <h3>Install the driver</h3>
+        <pre><code class="language-bash">npm install mongodb</code></pre>
+        <p>This adds the mongodb package under dependencies in your package.json.</p>
+        
+        <h3>Import and connect</h3>
+        <p>In your code (e.g. index.js), bring in the MongoClient and open a connection:</p>
+        <pre><code class="language-js">import { MongoClient } from "mongodb";
+
+async function main() {
+  const uri    = "mongodb://localhost:27017";  // or your Atlas URI
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    console.log("✅ Connected to MongoDB!");
+    // …use client.db() and client.db().collection() here…
+  } catch (err) {
+    console.error(err);
+  } finally {
+    await client.close();
+  }
+}
+
+main();</code></pre>
+
+        <h3>MongoDB Driver Methods</h3>
+        <table class="method-table">
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>What It Does (Surface)</th>
+                    <th>Behind the Scenes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>MongoClient.connect()</strong><br><code>await client.connect()</code></td>
+                    <td>Opens a connection (or pool) to your MongoDB server or Atlas cluster.</td>
+                    <td>
+                        <ul>
+                            <li><strong>DNS/Seed‐list resolution:</strong> Finds all mongod/mongosh addresses.</li>
+                            <li><strong>Handshake:</strong> Runs the "isMaster" (or "hello") command to negotiate wire protocol version, auth mechanisms, and replica‐set topology.</li>
+                            <li><strong>Connection pool:</strong> Establishes several TCP sockets in advance for reuse.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>client.db(dbName)</strong></td>
+                    <td>Selects the logical database you want to work with.</td>
+                    <td>
+                        <ul>
+                            <li><strong>No network call:</strong> Just returns a lightweight wrapper that remembers the namespace ("dbName").</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>db.collection(name)</strong></td>
+                    <td>Grabs a handle to a collection in that database.</td>
+                    <td>
+                        <ul>
+                            <li><strong>No network call:</strong> Returns another wrapper, pointing at "dbName.collectionName."</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.insertOne(doc)</strong></td>
+                    <td>Inserts a single document into the collection.</td>
+                    <td>
+                        <ul>
+                            <li><strong>BSON serialization:</strong> Converts your JS object into binary BSON.</li>
+                            <li><strong>OpMsg framing:</strong> Wraps it in an "insert" command message.</li>
+                            <li><strong>Wire protocol:</strong> Sends over one of your pool sockets.</li>
+                            <li><strong>Acknowledgement:</strong> Waits for a "writeConcern" acknowledgment (by default, "w:1" means "I got it").</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.insertMany([doc1,…])</strong></td>
+                    <td>Inserts multiple documents in bulk.</td>
+                    <td>
+                        <ul>
+                            <li><strong>Bulk API:</strong> Packages up to 1,000 docs into a single batch message (or splits if too large).</li>
+                            <li><strong>Ordered vs. unordered:</strong> Depending on <code>ordered: true|false</code>, the server may stop or continue on errors.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.find(query[, options]).toArray()</strong></td>
+                    <td>Fetches all matching documents into an array.</td>
+                    <td>
+                        <ul>
+                            <li><strong>Query serialization:</strong> Packs your filter, projection, sort, skip/limit into a "find" command.</li>
+                            <li><strong>Cursor stream:</strong> The server opens a cursor—sending the first batch (e.g. 101 documents).</li>
+                            <li><strong>getMore:</strong> If you <code>.toArray()</code> and there's more data, the driver issues additional "getMore" commands until exhausted.</li>
+                            <li><strong>BSON deserialization:</strong> Converts incoming BSON back to JS objects.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.findOne(query[, options])</strong></td>
+                    <td>Convenience to get just the first matching document.</td>
+                    <td>
+                        <ul>
+                            <li>Internally runs a <code>find(...).limit(1)</code> and returns the first result (or <code>null</code>).</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.updateOne(filter, update[, options])</strong></td>
+                    <td>Modifies one document matching your filter.</td>
+                    <td>
+                        <ul>
+                            <li><strong>Update operators:</strong> Translates your <code>$set</code>, <code>$inc</code>, etc., into the "update" command.</li>
+                            <li><strong>Atomic operation:</strong> The server applies the change with optional upsert behaviors in a single document‐level transaction.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.updateMany(filter, update[, options])</strong></td>
+                    <td>Applies updates to all matching documents.</td>
+                    <td>
+                        <ul>
+                            <li>Similar to <code>updateOne</code>, but the server loops internally over every match—still one network round‐trip.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.deleteOne(filter)</strong></td>
+                    <td>Removes a single matching document.</td>
+                    <td>
+                        <ul>
+                            <li>Sends a "delete" command with <code>limit: 1</code>.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.deleteMany(filter)</strong></td>
+                    <td>Removes all matching documents.</td>
+                    <td>
+                        <ul>
+                            <li>Sends a "delete" command with <code>limit: 0</code> (i.e. no limit).</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>collection.aggregate(pipeline)</strong></td>
+                    <td>Runs an aggregation pipeline (grouping, transformations).</td>
+                    <td>
+                        <ul>
+                            <li><strong>Pipeline translation:</strong> Serializes your array of pipeline stages (<code>$match</code>, <code>$group</code>, <code>$project</code>, etc.) into an "aggregate" command.</li>
+                            <li><strong>Cursor or inline:</strong> Server may return results in one batch or use a cursor for larger sets.</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>client.close()</strong></td>
+                    <td>Gracefully closes all connections.</td>
+                    <td>
+                        <ul>
+                            <li><strong>Pool teardown:</strong> Sends an "endSessions" command, closes each TCP socket, and cleans up resources.</li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="mongodb-lifecycle">
+        <h2>Life of a Single Command</h2>
+        <ol>
+            <li>You call <code>await collection.insertOne({ name: "Alice" })</code>.</li>
+            <li>The driver serializes your JS object into BSON bytes.</li>
+            <li>It wraps that in a MongoDB OpMsg (the modern wire‐protocol message) with the insert command.</li>
+            <li>It pulls an idle socket from the connection pool and writes the message.</li>
+            <li>The server executes it atomically, writes to its data files, and sends back an ack (with the newly generated _id).</li>
+            <li>The driver deserializes the response, resolves your Promise, and you get back <code>{ acknowledged: true, insertedId: ObjectId("…") }</code>.</li>
+        </ol>
+        <p>Because of connection pooling, authentication and topology checks happen mostly at connect(). After that, each operation is as lightweight as writing one message to an existing TCP socket and reading one response—making the driver both efficient and easy to use.</p>
+    </section>
+</body>
+</html>

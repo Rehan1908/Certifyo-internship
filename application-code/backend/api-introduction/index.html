@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Introduction</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fira-code@6.2.0/distr/fira_code.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="page-header">
+        <div class="container">
+            <h1>API Introduction</h1>
+            <p class="subtitle">Understanding the fundamentals of modern web APIs</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="toc">
+            <h2>Contents</h2>
+            <ul>
+                <li><a href="#url-structure">URL Structure</a></li>
+                <li><a href="#query-strings">Query Strings</a></li>
+                <li><a href="#crud">CRUD Operations</a></li>
+                <li><a href="#api-definition">What is an API?</a></li>
+                <li><a href="#api-history">API Evolution</a></li>
+                <li><a href="#restful-api">RESTful APIs</a></li>
+                <li><a href="#postman">Using Postman</a></li>
+                <li><a href="#http-methods">HTTP Methods</a></li>
+                <li><a href="#status-codes">Status Codes</a></li>
+                <li><a href="#error-handling">Error Handling</a></li>
+            </ul>
+        </div>
+        
+        <section id="url-structure" class="card">
+            <div class="card-header">
+                <i class="fas fa-link"></i>
+                <h2>Understanding URLs</h2>
+            </div>
+            <div class="card-body">
+                <p>A URL (Uniform Resource Locator) is simply the "address" you type into your browser or use in your code to find something on the web. Here's how it breaks down:</p>
+                
+                <div class="url-components">
+                    <div class="url-component">
+                        <h3>Scheme (Protocol)</h3>
+                        <p><code>http://</code> or <code>https://</code> (secure)</p>
+                        <p>Tells your browser or client how to talk to the server.</p>
+                    </div>
+                    
+                    <div class="url-component">
+                        <h3>Host (Domain or IP)</h3>
+                        <p><code>api.example.com</code> or <code>192.168.1.5</code></p>
+                        <p>Identifies where your request should go.</p>
+                    </div>
+                    
+                    <div class="url-component">
+                        <h3>Port (Optional)</h3>
+                        <p><code>:3000</code></p>
+                        <p>Specifies the exact "door" on the server. If omitted, 80 (HTTP) or 443 (HTTPS) is assumed.</p>
+                    </div>
+                    
+                    <div class="url-component">
+                        <h3>Path</h3>
+                        <p><code>/users/42</code></p>
+                        <p>The specific resource on that server. Think of it as the folder and filename in a file system.</p>
+                    </div>
+                    
+                    <div class="url-component">
+                        <h3>Query String (Optional)</h3>
+                        <p><code>?search=alice&page=2</code></p>
+                        <p>Used to send extra parameters without changing the resource's path.</p>
+                    </div>
+                    
+                    <div class="url-component">
+                        <h3>Fragment (Optional)</h3>
+                        <p><code>#section3</code></p>
+                        <p>Points to a subsection of the document; handled entirely by the browser and never sent to the server.</p>
+                    </div>
+                </div>
+
+                <div class="url-example">
+                    <h3>Complete URL Example</h3>
+                    <div class="code-display">
+                        <code>https://api.example.com:3000/users/42?format=json#details</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="query-strings" class="card">
+            <div class="card-header">
+                <i class="fas fa-search"></i>
+                <h2>Query Strings in Web APIs</h2>
+            </div>
+            <div class="card-body">
+                <p>In web APIs, the query string is the bit of the URL after the <code>?</code>, made up of one or more key=value pairs separated by <code>&</code>. Express parses this for you into a plain JavaScript object on <code>req.query</code>. Here are the most common patterns you'll see:</p>
+                
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Pattern</th>
+                                <th>Example URL</th>
+                                <th>req.query</th>
+                                <th>Usage (in code)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Pagination</strong></td>
+                                <td><code>/users?page=2&limit=25</code></td>
+                                <td><code>{ page: '2', limit: '25' }</code></td>
+                                <td><code>const page = Number(req.query.page);<br>const limit = Number(req.query.limit);</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Filtering</strong></td>
+                                <td><code>/products?category=books&inStock=true</code></td>
+                                <td><code>{ category: 'books', inStock: 'true' }</code></td>
+                                <td><code>const { category } = req.query;<br>const inStock = req.query.inStock==='true';</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sorting</strong></td>
+                                <td><code>/events?sortBy=date&order=desc</code></td>
+                                <td><code>{ sortBy: 'date', order: 'desc' }</code></td>
+                                <td><code>const sort = { [req.query.sortBy] : req.query.order==='desc' ? -1 : 1 };</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Search</strong></td>
+                                <td><code>/articles?search=express</code></td>
+                                <td><code>{ search: 'express' }</code></td>
+                                <td><code>const term = req.query.search || '';</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Field Selection</strong></td>
+                                <td><code>/users?fields=id,name,email</code></td>
+                                <td><code>{ fields: 'id,name,email' }</code></td>
+                                <td><code>const fields = req.query.fields.split(',');</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="crud" class="card">
+            <div class="card-header">
+                <i class="fas fa-database"></i>
+                <h2>What is CRUD?</h2>
+            </div>
+            <div class="card-body">
+                <p>CRUD stands for Create, Read, Update, and Delete - the four basic operations you can perform on data in most applications:</p>
+                
+                <div class="table-container">
+                    <table class="styled-table crud-table">
+                        <thead>
+                            <tr>
+                                <th>Letter</th>
+                                <th>Stands for</th>
+                                <th>What it does</th>
+                                <th>Example</th>
+                                <th>HTTP Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="crud-create">
+                                <td><strong>C</strong></td>
+                                <td>Create</td>
+                                <td>Add new data</td>
+                                <td>Add a new user</td>
+                                <td><code>POST</code></td>
+                            </tr>
+                            <tr class="crud-read">
+                                <td><strong>R</strong></td>
+                                <td>Read</td>
+                                <td>Get existing data</td>
+                                <td>Get a list of users</td>
+                                <td><code>GET</code></td>
+                            </tr>
+                            <tr class="crud-update">
+                                <td><strong>U</strong></td>
+                                <td>Update</td>
+                                <td>Change existing data</td>
+                                <td>Change a user's name</td>
+                                <td><code>PUT</code> or <code>PATCH</code></td>
+                            </tr>
+                            <tr class="crud-delete">
+                                <td><strong>D</strong></td>
+                                <td>Delete</td>
+                                <td>Remove existing data</td>
+                                <td>Delete a user</td>
+                                <td><code>DELETE</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="api-definition" class="card">
+            <div class="card-header">
+                <i class="fas fa-exchange-alt"></i>
+                <h2>What is an API?</h2>
+            </div>
+            <div class="card-body">
+                <div class="analogy">
+                    <div class="analogy-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="analogy-content">
+                        <p>An API (Application Programming Interface) is like a waiter at a restaurant. Imagine you're sitting at a table (your app) and you want to order food (some data or a service). You tell the waiter (the API) what you want, and the waiter goes to the kitchen (the server or another piece of software), fetches your order exactly the way you asked, and brings it back to you.</p>
+                        <p>You don't need to know how the kitchen works or exactly how the chef prepares the dish—you just trust the waiter to handle all that.</p>
+                    </div>
+                </div>
+
+                <h3>Why it matters:</h3>
+                <div class="feature-list">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Simplicity</h4>
+                            <p>You ask for what you need without worrying about the details.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Consistency</h4>
+                            <p>The waiter always uses the same menu and ordering format, so you know exactly how to ask.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Safety</h4>
+                            <p>You can't wander into the kitchen and break things—everything goes through the waiter's well-defined processes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="api-history" class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i>
+                <h2>API Evolution</h2>
+            </div>
+            <div class="card-body">
+                <p>Across the Internet, APIs serve as the universally accepted mechanism by which disparate systems interoperate. Through standardized communication protocols (most commonly HTTP/HTTPS), clients transmit requests to remote servers and obtain structured responses. This model promotes modularity, reuse of established services, and secure, scalable integration among applications.</p>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">1950s-60s</div>
+                        <div class="timeline-content">
+                            <h4>Early Days</h4>
+                            <p>Programmers defined simple function-calling rules inside mainframe operating systems—basically the first "local" APIs.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">1980s-90s</div>
+                        <div class="timeline-content">
+                            <h4>RPC & CORBA</h4>
+                            <p>Remote Procedure Calls let programs on different machines call each other as if they were local functions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Late 1990s</div>
+                        <div class="timeline-content">
+                            <h4>SOAP & XML-RPC</h4>
+                            <p>Big companies like Microsoft and IBM standardized messaging formats so different systems could talk over the internet.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">2000</div>
+                        <div class="timeline-content">
+                            <h4>REST</h4>
+                            <p>Roy Fielding popularized a simpler, URL-based style—now the most common way web APIs work.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="restful-api" class="card">
+            <div class="card-header">
+                <i class="fas fa-sitemap"></i>
+                <h2>What is a RESTful API?</h2>
+            </div>
+            <div class="card-body">
+                <p>A RESTful API is like ordering from a café menu where every item has its own specific URL "address." You use standard actions—like "GET" to look at a menu item, "POST" to place a new order, "PUT" to update your order, or "DELETE" to cancel it.</p>
+                
+                <h3>Key Characteristics:</h3>
+                <div class="feature-list">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-cubes"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Resources as dishes</h4>
+                            <p>Each thing you want (a user's profile, the list of today's specials, a saved photo) lives at its own web address (URL).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Uniform requests</h4>
+                            <p>You always use the same basic verbs—GET, POST, PUT, DELETE—so it's super clear what action you're asking for.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Stateless interaction</h4>
+                            <p>Every time you talk to the café (server), you include all the details needed in your request—no "memory" of your last visit. This keeps interactions predictable and easy to scale.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="postman" class="card">
+            <div class="card-header">
+                <i class="fas fa-paper-plane"></i>
+                <h2>What is Postman?</h2>
+            </div>
+            <div class="card-body">
+                <p>Postman is like a friendly remote control for talking to your API "waiter." Instead of writing code every time to send requests, you use Postman's visual interface to:</p>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Set the address</h4>
+                            <p>Type in the API's URL (e.g. <code>http://localhost:3000/users</code>).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Choose the action</h4>
+                            <p>Pick GET, POST, PUT, or DELETE from a dropdown—just like selecting a TV channel.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Add details</h4>
+                            <p>Enter any request headers (like content type) or body data (for POST/PUT) in simple text or form fields.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Send & inspect</h4>
+                            <p>Hit "Send" and instantly see the response status, headers, and body—no extra coding required.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="http-methods" class="card">
+            <div class="card-header">
+                <i class="fas fa-exchange-alt"></i>
+                <h2>Common HTTP Methods</h2>
+            </div>
+            <div class="card-body">
+                <div class="method-list">
+                    <div class="method get-method">
+                        <h3>GET</h3>
+                        <div class="method-description">
+                            <p><strong>What it does:</strong> "Fetch me this."</p>
+                            <p><strong>When to use:</strong> Retrieving data (e.g. a list of users, details of one user).</p>
+                            <p><strong>Idempotent:</strong> You can call it over and over without changing anything.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="method post-method">
+                        <h3>POST</h3>
+                        <div class="method-description">
+                            <p><strong>What it does:</strong> "Create something new."</p>
+                            <p><strong>When to use:</strong> Adding a new record (e.g. creating a new user, posting a comment).</p>
+                            <p><strong>Not idempotent:</strong> Calling it twice usually makes two items.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="method put-method">
+                        <h3>PUT</h3>
+                        <div class="method-description">
+                            <p><strong>What it does:</strong> "Replace or update this entirely."</p>
+                            <p><strong>When to use:</strong> Overwriting all fields of an existing item (e.g. editing a user's name and email).</p>
+                            <p><strong>Idempotent:</strong> Doing it twice with the same data ends up in the same state.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="method delete-method">
+                        <h3>DELETE</h3>
+                        <div class="method-description">
+                            <p><strong>What it does:</strong> "Remove this."</p>
+                            <p><strong>When to use:</strong> Deleting an existing item (e.g. removing a user).</p>
+                            <p><strong>Idempotent:</strong> Once it's gone, repeating "delete" doesn't change anything further.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="status-codes" class="card">
+            <div class="card-header">
+                <i class="fas fa-reply"></i>
+                <h2>Common Status Codes</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="styled-table status-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Meaning</th>
+                                <th>When You'll See It</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="success-code">
+                                <td><strong>200</strong></td>
+                                <td>OK</td>
+                                <td>Everything went well; here's your data.</td>
+                            </tr>
+                            <tr class="success-code">
+                                <td><strong>201</strong></td>
+                                <td>Created</td>
+                                <td>Your POST succeeded; a new resource was made.</td>
+                            </tr>
+                            <tr class="success-code">
+                                <td><strong>204</strong></td>
+                                <td>No Content</td>
+                                <td>Your DELETE (or sometimes PUT) succeeded, but there's no body to return.</td>
+                            </tr>
+                            <tr class="error-code">
+                                <td><strong>400</strong></td>
+                                <td>Bad Request</td>
+                                <td>You sent something invalid (e.g. missing "name").</td>
+                            </tr>
+                            <tr class="error-code">
+                                <td><strong>401</strong></td>
+                                <td>Unauthorized</td>
+                                <td>You need to log in or supply credentials.</td>
+                            </tr>
+                            <tr class="error-code">
+                                <td><strong>403</strong></td>
+                                <td>Forbidden</td>
+                                <td>You're logged in but don't have permission.</td>
+                            </tr>
+                            <tr class="error-code">
+                                <td><strong>404</strong></td>
+                                <td>Not Found</td>
+                                <td>The thing you asked for doesn't exist.</td>
+                            </tr>
+                            <tr class="error-code">
+                                <td><strong>500</strong></td>
+                                <td>Internal Server Error</td>
+                                <td>Oops—something went wrong on the server.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="error-handling" class="card">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Error Handling In Express</h2>
+            </div>
+            <div class="card-body">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Built-in Defaults</h4>
+                            <p>If any route handler throws an error or calls <code>next(err)</code>, Express will skip all normal routes and look for error-handling middleware.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Synchronous Errors</h4>
+                            <p>Use <code>throw</code> or <code>next(err)</code> inside a route:</p>
+                            <div class="code-block">
+                                <pre><code>app.get("/danger", (req, res, next) => {
+  if (!req.query.token) {
+    // create an Error and hand it off to Express
+    const err = new Error("Token is required");
+    err.status = 400;           // you can attach a status code
+    return next(err);
+  }
+  // ...normal processing...
+});</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Asynchronous Errors</h4>
+                            <p>In async functions or promise chains, wrap in try/catch or use a helper:</p>
+                            <div class="code-block">
+                                <pre><code>app.get("/async", async (req, res, next) => {
+  try {
+    const data = await someAsyncOp();
+    res.json(data);
+  } catch (err) {
+    next(err);               // forward any thrown error
+  }
+});</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Error-Handling Middleware</h4>
+                            <p>At the bottom of your middleware stack, add one or more handlers:</p>
+                            <div class="code-block">
+                                <pre><code>app.use((err, req, res, next) => {
+  console.error(err.stack);            // log for debugging
+  const status = err.status || 500;    // default to 500
+  res.status(status).json({
+    error: {
+      message: err.message || "Oops! Something went wrong.",
+      // you can include stack trace only in dev mode
+      // stack: process.env.NODE_ENV === "development" ? err.stack : undefined
+    }
+  });
+});</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <div class="container">
+            <p>&copy; 2025 API Documentation</p>
+            <p>A comprehensive guide to understanding API fundamentals</p>
+        </div>
+    </footer>
+</body>
+</html>

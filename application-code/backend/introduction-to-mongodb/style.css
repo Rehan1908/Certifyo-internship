@@ -1,0 +1,465 @@
+/* Enhanced MongoDB Introduction Styling */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+/* Base styles and typography */
+:root {
+  /* Core colors */
+  --mongo-green: #00ED64;
+  --mongo-dark-green: #10914a;
+  --mongo-light-green: #c8f9dc;
+  --mongo-blue: #196FAB;
+  --mongo-dark-blue: #13486D;
+  
+  /* Neutral palette */
+  --dark-gray: #2d2d2d;
+  --medium-gray: #616161;
+  --light-gray: #f5f5f5;
+  --border-color: #e0e0e0;
+  --code-bg: #f8f9fa;
+  
+  /* UI accents */
+  --accent-purple: #8064a9;
+  --accent-yellow: #ffd054;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.07);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.7;
+  color: var(--dark-gray);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: white;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(to right, var(--mongo-green), var(--mongo-blue));
+  z-index: 1000;
+}
+
+/* Header styling */
+header {
+  border-bottom: 2px solid var(--mongo-green);
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  position: relative;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+header h1 {
+  color: var(--dark-gray);
+  margin-top: 0;
+  font-size: 2.75rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+header h1::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 4px;
+  margin-top: 15px;
+  background-color: var(--mongo-green);
+  border-radius: 2px;
+}
+
+/* Section styling */
+section {
+  margin-bottom: 4rem;
+  padding-bottom: 2rem;
+  position: relative;
+}
+
+section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  right: 15%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+}
+
+section:last-child::after {
+  display: none;
+}
+
+/* Headings */
+h2 {
+  color: var(--dark-gray);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--mongo-light-green);
+}
+
+h3 {
+  color: var(--mongo-dark-green);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h4 {
+  color: var(--mongo-dark-blue);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Paragraphs and text */
+p {
+  margin-bottom: 1.25rem;
+  color: var(--dark-gray);
+  font-size: 1.05rem;
+}
+
+strong {
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+/* Lists */
+ul, ol {
+  padding-left: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+ul li, ol li {
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+ul li::marker {
+  color: var(--mongo-green);
+}
+
+ol li::marker {
+  color: var(--mongo-dark-green);
+  font-weight: 600;
+}
+
+/* Code blocks */
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--mongo-green);
+  border-radius: 0 4px 4px 0;
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-family: 'Fira Code', 'Consolas', Monaco, monospace;
+  margin: 1.5rem 0 2rem 0;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+pre::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-width: 0 12px 12px 0;
+  border-style: solid;
+  border-color: var(--border-color) white;
+}
+
+code {
+  font-family: 'Fira Code', 'Consolas', Monaco, monospace;
+  font-size: 0.9rem;
+  background-color: var(--code-bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--mongo-dark-blue);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--dark-gray);
+}
+
+.language-js {
+  color: #007acc; /* JavaScript blue */
+}
+
+.language-sql {
+  color: #c42b3b; /* SQL reddish */
+}
+
+.language-bash {
+  color: #333;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+th {
+  background: linear-gradient(to right, var(--mongo-dark-green), var(--mongo-green));
+  color: white;
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+th:first-child {
+  border-top-left-radius: 6px;
+}
+
+th:last-child {
+  border-top-right-radius: 6px;
+}
+
+td {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  padding: 1rem;
+  vertical-align: top;
+}
+
+td:first-child {
+  border-left: none;
+}
+
+td:last-child {
+  border-right: none;
+}
+
+tr:last-child td:first-child {
+  border-bottom-left-radius: 6px;
+}
+
+tr:last-child td:last-child {
+  border-bottom-right-radius: 6px;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--light-gray);
+}
+
+.comparison-table th {
+  width: 33.33%;
+}
+
+.method-table th:first-child {
+  width: 25%;
+  background: var(--mongo-dark-green);
+}
+
+.method-table td:first-child {
+  font-family: 'Fira Code', 'Consolas', Monaco, monospace;
+  font-size: 0.9rem;
+  background-color: rgba(19, 170, 82, 0.04);
+}
+
+/* Links */
+a {
+  color: var(--mongo-blue);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--mongo-blue);
+  padding-bottom: 1px;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--mongo-dark-blue);
+  border-bottom: 1px solid var(--mongo-dark-blue);
+  text-decoration: none;
+}
+
+/* ACID section special styling */
+.acid h3 {
+  color: var(--dark-gray);
+  background-color: rgba(19, 170, 82, 0.08);
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin-top: 1.8rem;
+  border-left: 4px solid var(--mongo-green);
+  font-weight: 600;
+}
+
+/* MongoDB concepts special styling */
+.mongodb-concepts h4 {
+  background-color: rgba(19, 170, 82, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  position: relative;
+}
+
+.mongodb-concepts h4::before {
+  content: "→";
+  color: var(--mongo-green);
+  position: absolute;
+  left: 0.4rem;
+  font-weight: bold;
+}
+
+/* Feature highlights */
+.mongodb ul li strong, 
+.nodejs-nosql ul li strong {
+  color: var(--mongo-dark-green);
+}
+
+/* Special section styling */
+.mongodb-lifecycle {
+  background-color: rgba(19, 170, 82, 0.04);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mongodb-lifecycle h2 {
+  border-bottom: none;
+  color: var(--mongo-dark-green);
+  margin-top: 0;
+}
+
+.mongodb-lifecycle ol {
+  counter-reset: lifecycle-counter;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.mongodb-lifecycle ol li {
+  counter-increment: lifecycle-counter;
+  position: relative;
+  padding-left: 3rem;
+  margin-bottom: 1rem;
+}
+
+.mongodb-lifecycle ol li::before {
+  content: counter(lifecycle-counter);
+  background-color: var(--mongo-green);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  top: -0.25rem;
+}
+
+/* Setup section styling */
+.mongodb-setup ol > li {
+  margin-bottom: 2rem;
+}
+
+.mongodb-setup h4 {
+  margin-bottom: 0.8rem;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  body {
+    padding: 20px;
+    font-size: 0.95rem;
+  }
+  
+  header h1 {
+    font-size: 2.2rem;
+  }
+  
+  h2 {
+    font-size: 1.8rem;
+  }
+  
+  h3 {
+    font-size: 1.3rem;
+  }
+  
+  pre, table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  
+  .comparison-table th,
+  .comparison-table td {
+    display: block;
+    width: 100%;
+  }
+  
+  .comparison-table td {
+    border-top: none;
+  }
+  
+  .comparison-table tr {
+    border-top: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    padding: 0;
+    color: black;
+  }
+  
+  pre, code {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    background: white !important;
+  }
+  
+  a {
+    color: black;
+    text-decoration: underline;
+    border: none;
+  }
+  
+  section::after {
+    display: none;
+  }
+}
