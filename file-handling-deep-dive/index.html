@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Handling in Node.js</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>File Handling In Node.js</h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="fs-module">
+            <h2>1. The <code>fs</code> Module</h2>
+            <p>
+                Node.js provides a built-in module called <code>fs</code> (short for <strong>File System</strong>) that lets you work with files on your computer. It exposes methods for:
+            </p>
+            <ul>
+                <li><strong>Reading</strong> files</li>
+                <li><strong>Writing</strong> files</li>
+                <li><strong>Watching</strong> for changes</li>
+                <li><strong>Manipulating</strong> directories</li>
+                <li><strong>Checking</strong> stats (size, timestamps, permissions)</li>
+            </ul>
+            <p>You load it like this:</p>
+            <pre><code class="language-javascript">const fs = require('fs');</code></pre>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="sync-vs-async">
+            <h2>2. Synchronous vs. Asynchronous APIs</h2>
+            <p>Every file-system operation comes in two flavors:</p>
+
+            <div class="feature-card">
+                <h3>1. Asynchronous (Non-blocking)</h3>
+                <ul>
+                    <li>Functions take a callback (or return a Promise in modern APIs).</li>
+                    <li>Node.js doesn't wait for the file operation to finish before moving on.</li>
+                    <li>Ideal for high-performance servers.</li>
+                </ul>
+                <pre><code class="language-javascript">fs.readFile('example.txt', 'utf8', (err, data) => {
+  if (err) throw err;
+  console.log(data);
+});</code></pre>
+            </div>
+
+            <div class="feature-card">
+                <h3>2. Synchronous (Blocking)</h3>
+                <ul>
+                    <li>Functions return their result directly, but block the event loop until they complete.</li>
+                    <li>Easier to reason about in small scripts.</li>
+                </ul>
+                <pre><code class="language-javascript">const data = fs.readFileSync('example.txt', 'utf8');
+console.log(data);</code></pre>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="promises">
+            <h2>3. Promises & <code>fs.promises</code></h2>
+            <p>To avoid "callback hell," Node.js also offers a promise-based API:</p>
+            <pre><code class="language-javascript">const fsp = require('fs').promises;
+
+async function showFile() {
+  try {
+    const data = await fsp.readFile('example.txt', 'utf8');
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+showFile();</code></pre>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="streams">
+            <h2>4. Streams for Large Files</h2>
+            <p>When dealing with very large files, you can use <strong>streams</strong> to process data in chunks instead of loading everything into memory:</p>
+            <pre><code class="language-javascript">const readStream = fs.createReadStream('largefile.txt', 'utf8');
+readStream.on('data', chunk => {
+  console.log('Received chunk:', chunk);
+});</code></pre>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="common-use-cases">
+            <h2>5. Common Use Cases</h2>
+            <ul>
+                <li><strong>Reading configuration files</strong></li>
+                <li><strong>Uploading/downloading files</strong> in web apps</li>
+                <li><strong>Logging</strong> application events to disk</li>
+                <li><strong>Generating reports</strong> or backups</li>
+            </ul>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="image-data">
+            <h2>Image Data In Node.js</h2>
+            
+            <section id="buffers">
+                <h3>1. Reading & Writing as Buffers</h3>
+                <p>By default, if you omit an encoding when reading, <code>fs</code> returns a <code>Buffer</code>—perfect for binary data:</p>
+                <pre><code class="language-javascript">const fs = require('fs');
+
+// Read image into a Buffer
+fs.readFile('photo.jpg', (err, dataBuffer) => {
+  if (err) throw err;
+  console.log('Loaded', dataBuffer.length, 'bytes');
+  
+  // Write it back somewhere else
+  fs.writeFile('copy.jpg', dataBuffer, err => {
+    if (err) throw err;
+    console.log('Image copied!');
+  });
+});</code></pre>
+                <div class="note">
+                    <strong>Key:</strong> Don't specify an encoding like <code>'utf8'</code>—that corrupts binary files.
+                </div>
+            </section>
+
+            <section id="streaming-images">
+                <h3>2. Streaming Large Images</h3>
+                <p>For very large images, streams let you process chunk by chunk:</p>
+                <pre><code class="language-javascript">const readStream = fs.createReadStream('large.png');
+const writeStream = fs.createWriteStream('backup.png');
+
+readStream
+  .pipe(writeStream)
+  .on('finish', () => console.log('Streamed copy complete!'))
+  .on('error', err => console.error(err));</code></pre>
+            </section>
+
+            <section id="serving-images">
+                <h3>3. Serving Images in a Web App</h3>
+                <p>If you're using Express, you can stream images right to the client:</p>
+                <pre><code class="language-javascript">const express = require('express');
+const fs = require('fs');
+const app = express();
+
+app.get('/avatar', (req, res) => {
+  const imgPath = 'avatar.png';
+  const stat = fs.statSync(imgPath);
+
+  res.writeHead(200, {
+    'Content-Type': 'image/png',
+    'Content-Length': stat.size
+  });
+
+  const readStream = fs.createReadStream(imgPath);
+  readStream.pipe(res);
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));</code></pre>
+            </section>
+
+            <section id="image-processing">
+                <h3>4. Converting & Resizing with External Libraries</h3>
+                <p>For tasks like resizing or format conversion, a library like <a href="https://www.npmjs.com/package/sharp" target="_blank"><code>sharp</code></a> is invaluable:</p>
+                <pre><code class="language-javascript">const sharp = require('sharp');
+
+sharp('input.jpg')
+  .resize(200, 200)          // resize to 200×200
+  .toFormat('png')           // convert to PNG
+  .toFile('output.png')      // write out
+  .then(() => console.log('Done!'))
+  .catch(err => console.error(err));</code></pre>
+            </section>
+
+            <section id="base64">
+                <h3>5. Encoding Images as Base64</h3>
+                <p>Sometimes you might embed an image directly in JSON or HTML. You can convert the buffer to Base64:</p>
+                <pre><code class="language-javascript">fs.readFile('logo.png', (err, buf) => {
+  if (err) throw err;
+  const base64 = buf.toString('base64');
+  console.log('data:image/png;base64,' + base64);
+});</code></pre>
+            </section>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="multer">
+            <h2>Overview Of Multer</h2>
+
+            <section id="what-is-multer">
+                <h3>What Is Multer?</h3>
+                <p>Multer is a middleware for Express (and other Node.js frameworks) that makes handling <code>multipart/form-data</code>—the encoding used for file uploads—easy and efficient.</p>
+            </section>
+
+            <section id="multer-features">
+                <h3>Key Features</h3>
+                <ol>
+                    <li>
+                        <strong>Handles Form Data & Files</strong>
+                        <ul>
+                            <li>Parses incoming requests with file uploads and exposes the files as <code>req.file</code> (single) or <code>req.files</code> (multiple).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Configurable Storage Engines</strong>
+                        <ul>
+                            <li><strong>DiskStorage</strong>: Saves files to disk with options to control destination and filename.</li>
+                            <li><strong>MemoryStorage</strong>: Keeps files in memory as <code>Buffer</code> objects—useful for further processing without hitting the filesystem.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>File Filtering</strong>
+                        <ul>
+                            <li>Let you accept/reject uploads based on MIME type, file size, or custom logic.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Limits & Validation</strong>
+                        <ul>
+                            <li>Set max file size, maximum number of files, and other constraints to protect your server.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="multer-usage">
+                <h3>How It Works</h3>
+                <ol>
+                    <li>
+                        <strong>Install & Require</strong>
+                        <pre><code class="language-bash">npm install multer</code></pre>
+                        <pre><code class="language-javascript">const multer = require('multer');</code></pre>
+                    </li>
+                    <li>
+                        <strong>Configure Storage</strong>
+                        <pre><code class="language-javascript">// Example: save to ./uploads with original filename
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, './uploads'),
+  filename:    (req, file, cb) => cb(null, file.originalname)
+});
+const upload = multer({ storage });</code></pre>
+                    </li>
+                    <li>
+                        <strong>Use as Middleware</strong>
+                        <pre><code class="language-javascript">// Single file
+app.post('/profile', upload.single('avatar'), (req, res) => {
+  // req.file contains the uploaded file info
+  res.send('Upload complete!');
+});
+
+// Multiple files
+app.post('/photos', upload.array('images', 5), (req, res) => {
+  // req.files is an array of file objects
+  res.send('Photos uploaded!');
+});</code></pre>
+                    </li>
+                </ol>
+            </section>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="busboy">
+            <h2>What Is Busboy?</h2>
+            <p>Busboy is the low-level streaming parser that underlies most multipart/form-data libraries in Node.js (including Multer). It reads the raw HTTP request body, identifies the boundaries between fields and files, and emits events as it goes—letting you handle each piece of data in a memory-efficient, chunked way.</p>
+            
+            <div class="info-box">
+                <h3>What Is a Parser?</h3>
+                <p>A parser is a piece of software (or module) whose job is to read raw data—usually text or binary—and interpret its structure according to some set of rules or a grammar. The parser then produces a more usable in-memory representation, like an object, tree, or sequence of tokens, that the rest of your program can work with.</p>
+            </div>
+
+            <section id="busboy-usage">
+                <h3>Instantiating Busboy</h3>
+                <p>You usually create a Busboy instance yourself like this:</p>
+                <pre><code class="language-javascript">const Busboy = require('busboy');
+
+function handleRequest(req, res) {
+  const bb = new Busboy({
+    headers: req.headers,      // Required: tells Busboy where to split parts
+    highWaterMark: 2 * 1024 * 1024, // Optional: size of internal read buffer
+    defCharset: 'utf8',        // Optional: default encoding for text parts
+    preservePath: false        // Optional: whether to keep full client-side file paths
+  });
+
+  bb.on('file', (fieldname, fileStream, info) => { /* … */ });
+  bb.on('field', (name, val, info) => { /* … */ });
+  bb.on('finish', () => res.end('Done'));
+  req.pipe(bb);
+}</code></pre>
+            </section>
+
+            <section id="busboy-options">
+                <h3>Key Constructor Options</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>headers</strong></td>
+                                <td>Object</td>
+                                <td>—</td>
+                                <td><strong>Required.</strong> The <code>req.headers</code> object so Busboy can locate the multipart boundary.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>highWaterMark</strong></td>
+                                <td>Integer</td>
+                                <td>64 KiB</td>
+                                <td>Size (in bytes) of the internal read buffer for file streams before 'data' events fire.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>defCharset</strong></td>
+                                <td>String</td>
+                                <td><code>'utf8'</code></td>
+                                <td>Charset for decoding plain text fields (applied when no <code>charset=</code> in Content-Type header).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>preservePath</strong></td>
+                                <td>Boolean</td>
+                                <td><code>false</code></td>
+                                <td>If <code>true</code>, <code>fileStream.filename</code> includes the entire client-side path (e.g., <code>C:\Users\…\img.png</code>).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>limits</strong></td>
+                                <td>Object</td>
+                                <td><code>{}</code></td>
+                                <td>Sub-object to cap sizes/counts (see below).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="busboy-limits">
+                <h3>The <code>limits</code> Sub-Object</h3>
+                <p>Use <code>limits</code> to defend against runaway uploads or floods of fields. If any limit is hit, Busboy emits a corresponding event and stops parsing that part.</p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Limit Name</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>fieldNameSize</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max length (bytes) of non-file field names</td>
+                            </tr>
+                            <tr>
+                                <td><strong>fieldSize</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max length (bytes) of non-file field values</td>
+                            </tr>
+                            <tr>
+                                <td><strong>fields</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max number of non-file fields</td>
+                            </tr>
+                            <tr>
+                                <td><strong>fileSize</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max size (bytes) per single file</td>
+                            </tr>
+                            <tr>
+                                <td><strong>files</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max number of file fields</td>
+                            </tr>
+                            <tr>
+                                <td><strong>parts</strong></td>
+                                <td>Integer</td>
+                                <td>∞</td>
+                                <td>Max total parts (fields + files)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>When a limit is exceeded, Busboy will:</p>
+                <ul>
+                    <li>Emit a <code>'fieldsLimit'</code>, <code>'filesLimit'</code>, or <code>'partsLimit'</code> event</li>
+                    <li>For file-size breaches, emit an <code>'error'</code> with a <code>ERR_PART_LIMIT</code> code</li>
+                    <li>Stop emitting further <code>'file'</code> or <code>'field'</code> events for that part</li>
+                </ul>
+            </section>
+
+            <section id="busboy-events">
+                <h3>Core Events</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Signature</th>
+                                <th>When It Fires</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>file</strong></td>
+                                <td><code>(fieldname, fileStream, info)</code></td>
+                                <td>Each file starts; <code>info</code> has <code>{ filename, encoding, mimeType }</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>field</strong></td>
+                                <td><code>(name, val, info)</code></td>
+                                <td>Each non-file field; <code>info</code> has <code>{ fieldNameTruncated, valueTruncated, encoding, mimeType }</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>partsLimit</strong></td>
+                                <td><code>()</code></td>
+                                <td>Total parts exceed <code>limits.parts</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>filesLimit</strong></td>
+                                <td><code>()</code></td>
+                                <td>Number of files exceed <code>limits.files</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>fieldsLimit</strong></td>
+                                <td><code>()</code></td>
+                                <td>Number of fields exceed <code>limits.fields</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>error</strong></td>
+                                <td><code>(err)</code></td>
+                                <td>Parsing errors (malformed multipart, file‐size breach, etc.)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>finish</strong></td>
+                                <td><code>()</code></td>
+                                <td>Completed parsing all parts</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="multer-busboy">
+                <h3>How Multer Hooks In</h3>
+                <p>When you do <code>multer({ … }).single('avatar')</code>, Multer:</p>
+                <ol>
+                    <li><strong>Passes</strong> your <code>limits</code> and other options directly into <code>new Busboy({ headers, limits, defCharset, preservePath, highWaterMark })</code>.</li>
+                    <li><strong>Listens</strong> to Busboy's <code>'file'</code> and <code>'field'</code> events.</li>
+                    <li><strong>Pipes</strong> file streams to your chosen storage engine (disk or memory).</li>
+                    <li><strong>Aggregates</strong> field values into <code>req.body</code> and file metadata into <code>req.file</code>/<code>req.files</code>.</li>
+                    <li><strong>Relays</strong> Busboy's limit and error events as Multer errors so you can catch them in Express.</li>
+                </ol>
+            </section>
+
+            <section id="multer-full-example">
+                <h3>Putting It All Together</h3>
+                <pre><code class="language-javascript">const multer  = require('multer');
+const storage = multer.diskStorage({ /* … */ });
+const upload  = multer({
+  storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024,  // 2 MB max per file
+    files:    3,                // up to 3 files
+    parts:    6                 // total fields + files ≤ 6
+  },
+  fileFilter(req, file, cb) { /* … */ }
+});
+
+app.post(
+  '/photos',
+  upload.array('images', 3),
+  (req, res) => { /* req.files available */ },
+  (err, req, res, next) => { /* error handler for Multer/Busboy limits */ }
+);</code></pre>
+            </section>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="multer-deep-dive">
+            <h2>Understanding Multer Deeply</h2>
+
+            <section id="multer-behind-scenes">
+                <h3>1. Behind the Scenes: How <code>upload</code> Is Built</h3>
+                
+                <ol class="detailed-list">
+                    <li>
+                        <strong>Based on Busboy</strong>
+                        <p>Multer wraps <a href="https://github.com/mscdex/busboy">Busboy</a>, the low-level parser for <code>multipart/form-data</code>.</p>
+                        <ul>
+                            <li>When you call <code>multer(options)</code>, it instantiates a Busboy parser under the hood.</li>
+                            <li>Busboy parses the incoming HTTP <code>POST</code> body, emits events (<code>file</code>, <code>field</code>, <code>finish</code>, <code>error</code>).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong><code>upload</code> Factory Function</strong>
+                        <pre><code class="language-javascript">const upload = multer({ storage, fileFilter, limits });</code></pre>
+                        <ul>
+                            <li>Returns an object with methods like <code>.single()</code>, <code>.array()</code>, <code>.fields()</code>, <code>.none()</code>, <code>.any()</code>.</li>
+                            <li>Each method returns standard Express middleware: <code>(req, res, next) => { … }</code>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Middleware Execution Flow</strong>
+                        <ol>
+                            <li>Examine <code>req.headers['content-type']</code>. If not <code>multipart/</code>, skip to <code>next()</code>.</li>
+                            <li>Instantiate Busboy with your <code>limits</code> (field size, file size, file count).</li>
+                            <li><strong>For each field</strong>:
+                                <ul>
+                                    <li>If it's a text field → collect into <code>req.body</code>.</li>
+                                    <li>If it's a file field → create a <code>FileStream</code> object and pass to your storage engine.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Storage Engine</strong>:
+                                <ul>
+                                    <li>Receives a stream of file data → writes to disk or buffers in memory (depending on engine).</li>
+                                    <li>Invokes your <code>destination</code> and <code>filename</code> functions for disk storage.</li>
+                                </ul>
+                            </li>
+                            <li>On Busboy <code>finish</code> → Multer attaches <code>req.file</code>/<code>req.files</code> and calls <code>next()</code>.</li>
+                        </ol>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="multer-functions">
+                <h3>2. Common <code>upload.*()</code> Functions</h3>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Use Case</th>
+                                <th>Attaches To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>upload.single(name)</code></td>
+                                <td>One file under field <code>name</code></td>
+                                <td><code>req.file</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>upload.array(name, maxCount)</code></td>
+                                <td>Multiple files under the same field</td>
+                                <td><code>req.files</code> (Array)</td>
+                            </tr>
+                            <tr>
+                                <td><code>upload.fields(fields)</code></td>
+                                <td>Different fields, each with its own limit</td>
+                                <td><code>req.files</code> (Object <code>{ fieldName: [files] }</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>upload.any()</code></td>
+                                <td>Accept <strong>all</strong> files in any field (no limits by field)</td>
+                                <td><code>req.files</code> (Array)</td>
+                            </tr>
+                            <tr>
+                                <td><code>upload.none()</code></td>
+                                <td>Reject any file — useful to validate only text fields</td>
+                                <td>no files</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="multer-customization">
+                <h3>3. Customization Points</h3>
+                
+                <div class="customization-item">
+                    <h4>Storage Engines</h4>
+                    <div class="code-examples">
+                        <div class="code-example">
+                            <h5>DiskStorage (default for saving to <code>./uploads</code>)</h5>
+                            <pre><code class="language-javascript">const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // e.g., choose folder based on user ID
+    cb(null, `uploads/${req.user.id}`);
+  },
+  filename: (req, file, cb) => {
+    // e.g., prepend timestamp to avoid name collisions
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}${ext}`);
+  }
+});</code></pre>
+                        </div>
+                        <div class="code-example">
+                            <h5>MemoryStorage (stores files in RAM as Buffer)</h5>
+                            <pre><code class="language-javascript">const storage = multer.memoryStorage();</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customization-item">
+                    <h4><code>fileFilter</code></h4>
+                    <p>Control which files to accept/reject:</p>
+                    <pre><code class="language-javascript">function fileFilter(req, file, cb) {
+  if (/^image\/(jpeg|png|gif)$/.test(file.mimetype)) {
+    cb(null, true);    // accept
+  } else {
+    cb(new Error('Only images allowed'), false);
+  }
+}</code></pre>
+                </div>
+
+                <div class="customization-item">
+                    <h4><code>limits</code></h4>
+                    <p>Protect your server—set ceilings on upload size/count:</p>
+                    <pre><code class="language-javascript">const limits = {
+  fieldNameSize: 100,    // max field name length (bytes)
+  fieldSize: 1024 * 10,  // max text field value size (bytes)
+  fileSize: 1024 * 1024, // max file size (1 MB)
+  files: 5,              // max number of files
+};</code></pre>
+                </div>
+
+                <div class="customization-item">
+                    <h4>Error Handling</h4>
+                    <p>Multer emits errors (size exceeded, invalid mime-type). In Express:</p>
+                    <pre><code class="language-javascript">app.post('/upload', upload.single('doc'), (req, res) => {
+  res.send('OK');
+}, (err, req, res, next) => {
+  // Handle Multer errors here
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+});</code></pre>
+                </div>
+            </section>
+
+            <section id="multer-mongoose">
+                <h3>4. Putting It All Together: Express + Mongoose Example</h3>
+                
+                <ol class="integration-steps">
+                    <li>
+                        <strong>Mongoose Schema</strong>
+                        <pre><code class="language-javascript">const ImageSchema = new mongoose.Schema({
+  filename: String,
+  path:     String,
+  size:     Number,
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  uploadedAt: { type: Date, default: Date.now }
+});
+const Image = mongoose.model('Image', ImageSchema);</code></pre>
+                    </li>
+                    <li>
+                        <strong>Multer Setup</strong>
+                        <pre><code class="language-javascript">const upload = multer({
+  storage,
+  fileFilter,
+  limits
+});</code></pre>
+                    </li>
+                    <li>
+                        <strong>Route Handler</strong>
+                        <pre><code class="language-javascript">app.post('/api/images', 
+  ensureAuthenticated,            // your auth middleware
+  upload.single('image'),         // Multer middleware
+  async (req, res, next) => {
+    try {
+      // req.file: { filename, path, size, ... }
+      const img = await Image.create({
+        filename:   req.file.filename,
+        path:       req.file.path,
+        size:       req.file.size,
+        uploadedBy: req.user.id
+      });
+      res.json(img);
+    } catch (err) {
+      next(err);
+    }
+  },
+  (err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
+  }
+);</code></pre>
+                    </li>
+                    <li>
+                        <strong>Workflow Recap</strong>
+                        <ul>
+                            <li><strong>Client</strong>: submits form <code>enctype="multipart/form-data"</code> with field <code>image</code>.</li>
+                            <li><strong>Express</strong>: <code>upload.single('image')</code> intercepts request, Busboy parses, storage engine saves file.</li>
+                            <li><strong>Multer</strong>: populates <code>req.file</code>.</li>
+                            <li><strong>Your Handler</strong>: persists file metadata in MongoDB via Mongoose.</li>
+                            <li><strong>Client</strong>: receives JSON with file info (URL/path) to display or reference.</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <div class="conclusion">
+                    <h4>Wrap-Up</h4>
+                    <ul>
+                        <li><strong><code>upload</code></strong> is just a factory for Express middleware, wiring up Busboy → your storage → <code>req.file(s)</code>.</li>
+                        <li><strong>Customization</strong> through <code>storage</code>, <code>fileFilter</code>, and <code>limits</code> tailors where/how files are kept and which files are allowed.</li>
+                        <li><strong>Integration</strong> with Express/Mongoose is seamless: Multer does the heavy I/O, you handle metadata persistence and app logic.</li>
+                    </ul>
+                </div>
+            </section>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="mongoose-files">
+            <h2>How Mongoose Works with File data</h2>
+
+            <section id="storage-metadata">
+                <h3>1. Storing Files vs. Metadata</h3>
+                <ul>
+                    <li>
+                        <strong>MongoDB Documents</strong> are JSON-like.
+                        <ul>
+                            <li>Great for storing <strong>metadata</strong> about files: filenames, paths, sizes, uploader IDs, timestamps, etc.</li>
+                            <li>Not ideal for large binary blobs directly in a document, because documents have a size limit (16 MB) and embedding big binaries can bloat RAM when you fetch them.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>GridFS</strong> is MongoDB's specification for storing and retrieving large files (over 16 MB) by splitting them into chunks.
+                        <ul>
+                            <li>Behind the scenes it creates two collections:
+                                <ul>
+                                    <li><code>fs.files</code> stores metadata for each file.</li>
+                                    <li><code>fs.chunks</code> stores binary chunks (usually 255 KiB each).</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+
+            <section id="mongoose-file-schemas">
+                <h3>2. Mongoose Schemas for File Metadata</h3>
+                <p>Most apps combine Multer's file-handling with a simple Mongoose schema to record the file's details:</p>
+                <pre><code class="language-javascript">const mongoose = require('mongoose');
+
+const ImageSchema = new mongoose.Schema({
+  originalName:  String,       // Multer's file.originalname
+  mimeType:      String,       // e.g., "image/png"
+  size:          Number,       // in bytes
+  storageType:   String,       // e.g., "disk", "memory", or "gridfs"
+  path:          String,       // local disk path (if using diskStorage)
+  uploadDate:    { type: Date, default: Date.now },
+  uploadedBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
+
+module.exports = mongoose.model('Image', ImageSchema);</code></pre>
+                <ul>
+                    <li><strong>Buffer Fields</strong>: If your files are small, you can actually store the binary directly in MongoDB:
+                        <pre><code class="language-javascript">const FileSchema = new mongoose.Schema({
+  filename: String,
+  data:     Buffer,       // holds the binary
+  contentType: String
+});</code></pre>
+                        <p>But beware of document-size limits and memory spikes when you fetch that data.</p>
+                    </li>
+                </ul>
+            </section>
+
+            <section id="mongoose-gridfs">
+                <h3>3. Using GridFS with Mongoose</h3>
+                <p>When you need to store larger files or stream them out, GridFS is the go-to:</p>
+                <ol>
+                    <li>
+                        <strong>Native MongoDB Driver's GridFSBucket</strong>
+                        <pre><code class="language-javascript">const { MongoClient, GridFSBucket } = require('mongodb');
+// after connecting...
+const bucket = new GridFSBucket(db, { bucketName: 'uploads' });
+
+// To upload:
+const uploadStream = bucket.openUploadStream('myphoto.png', {
+  metadata: { uploadedBy: userId }
+});
+fs.createReadStream('/tmp/photo.png').pipe(uploadStream);
+
+// To download:
+const downloadStream = bucket.openDownloadStreamByName('myphoto.png');
+downloadStream.pipe(res);</code></pre>
+                    </li>
+                    <li>
+                        <strong><code>mongoose-gridfs</code> or <code>gridfs-stream</code></strong>
+                        <p>There are community libraries that wrap this in a Mongoose-friendly way, letting you treat files almost like Mongoose models.</p>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="mongoose-app-flow">
+                <h3>4. Putting It All Together in an App</h3>
+                <ol>
+                    <li>
+                        <strong>Upload Flow</strong>
+                        <ul>
+                            <li><strong>Multer</strong> parses the multipart form, streams the file.</li>
+                            <li>You either:
+                                <ul>
+                                    <li><strong>Save to disk</strong> (<code>diskStorage</code>) and record metadata in a Mongoose document pointing to that path, <strong>or</strong></li>
+                                    <li><strong>Stream into GridFSBucket</strong> directly, then record the returned file ID/filename in a Mongoose document.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Retrieval Flow</strong>
+                        <ul>
+                            <li>For disk-stored files, serve via Express with <code>fs.createReadStream()</code> or via a static middleware.</li>
+                            <li>For GridFS files, use <code>bucket.openDownloadStream()</code>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Cleanup & Deletion</strong>
+                        <ul>
+                            <li>If using disk files, you must <code>fs.unlink()</code> when removing documents.</li>
+                            <li>If using GridFS, call <code>bucket.delete(fileId)</code> to remove both metadata and chunks.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="mongoose-gridfs-example">
+                <h3>Example: Storing into GridFS & Metadata</h3>
+                <pre><code class="language-javascript">// After multer.memoryStorage()
+app.post('/api/files', upload.single('file'), async (req, res, next) => {
+  try {
+    // 1) Stream buffer into GridFS
+    const readStream = Readable.from(req.file.buffer);
+    const uploadStream = bucket.openUploadStream(req.file.originalname, {
+      metadata: { uploadedBy: req.user.id }
+    });
+    readStream.pipe(uploadStream)
+      .on('error', next)
+      .on('finish', async () => {
+        // 2) Save metadata in Mongoose
+        const fileDoc = await FileModel.create({
+          filename: req.file.originalname,
+          gridFsId: uploadStream.id,
+          size: req.file.size,
+          contentType: req.file.mimetype,
+          uploadedBy: req.user.id
+        });
+        res.json(fileDoc);
+      });
+  } catch (err) {
+    next(err);
+  }
+});</code></pre>
+            </section>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="storage-options">
+            <h2>Local Storage Vs Cloud Storage</h2>
+
+            <section id="local-storage">
+                <h3>1. Local Disk Storage</h3>
+                
+                <h4>How It Works</h4>
+                <ul>
+                    <li><strong>Multer's DiskStorage</strong> writes files into a directory on the same machine where your Node.js process runs.</li>
+                    <li>You configure <code>destination</code> (folder path) and <code>filename</code> (name logic) in <code>multer.diskStorage()</code>.</li>
+                </ul>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li><strong>Simplicity</strong>: No external dependencies—just the local filesystem.</li>
+                            <li><strong>Performance</strong>: Very low latency reads/writes when serving from the same server.</li>
+                            <li><strong>Cost</strong>: No additional storage fees beyond your own server disk.</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li><strong>Scalability</strong>: When you scale to multiple instances (e.g. behind a load balancer), each has its own disk. Files uploaded to one server aren't automatically available on another.</li>
+                            <li><strong>Durability</strong>: If the server crashes or disk fills up, you risk data loss.</li>
+                            <li><strong>Backups</strong>: You're responsible for snapshotting and backing up that disk.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4>Typical Setup</h4>
+                <pre><code class="language-javascript">const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, './uploads'),
+  filename:    (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+const upload = multer({ storage });</code></pre>
+
+                <p>Then you might expose them via Express static middleware:</p>
+                <pre><code class="language-javascript">app.use('/static', express.static(path.join(__dirname, 'uploads')));</code></pre>
+            </section>
+
+            <section id="cloud-storage">
+                <h3>2. Cloud Storage Services</h3>
+                
+                <h4>Overview</h4>
+                <p>Popular options include:</p>
+                <ul>
+                    <li><strong>AWS S3</strong> (most common)</li>
+                    <li><strong>Google Cloud Storage</strong></li>
+                    <li><strong>Azure Blob Storage</strong></li>
+                </ul>
+                <p>Instead of writing to local disk, you stream uploads to the cloud via the provider's SDK.</p>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>Pros</h4>
+                        <ul>
+                            <li><strong>High Availability & Durability</strong>: Built-in replication across data centers guarantees ≥99.99% durability.</li>
+                            <li><strong>Scalability</strong>: No worries about running out of disk or syncing files across instances.</li>
+                            <li><strong>CDN Integration</strong>: Easy to front with a CDN (e.g., Amazon CloudFront) for global low-latency delivery.</li>
+                            <li><strong>Security & Compliance</strong>: Fine-grained ACLs, encryption at rest, audit logs.</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>Cons</h4>
+                        <ul>
+                            <li><strong>Latency & Cost</strong>: A bit more latency than local disk; you incur per-GB storage and request charges.</li>
+                            <li><strong>Complexity</strong>: Requires managing credentials, buckets, and SDK integration.</li>
+                            <li><strong>Vendor Lock-In</strong>: Your code ties into a specific cloud API unless abstracted.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4>Typical Setup (AWS S3 Example)</h4>
+                <ol>
+                    <li>
+                        <strong>Install & Configure</strong>
+                        <pre><code class="language-bash">npm install aws-sdk multer-s3</code></pre>
+                        <pre><code class="language-javascript">const AWS = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+
+const s3 = new AWS.S3({
+  accessKeyId:     process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region:          process.env.AWS_REGION
+});</code></pre>
+                    </li>
+                    <li>
+                        <strong>Multer-S3 Storage Engine</strong>
+                        <pre><code class="language-javascript">const upload = multer({
+  storage: multerS3({
+    s3,
+    bucket:      'my-app-uploads',
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    metadata:    (req, file, cb) => cb(null, { fieldName: file.fieldname }),
+    key:         (req, file, cb) => {
+      const timestamp = Date.now().toString();
+      cb(null, `${req.user.id}/${timestamp}-${file.originalname}`);
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }  // e.g., 5 MB max
+});</code></pre>
+                    </li>
+                    <li>
+                        <strong>Uploading & Retrieving</strong>
+                        <ul>
+                            <li><strong>Upload</strong>: <code>upload.single('avatar')</code> streams straight to S3; <code>req.file.location</code> gives the public URL (if the bucket is public or via signed URL).</li>
+                            <li><strong>Retrieve</strong>: Either serve directly from S3 URL or generate a signed URL for private buckets:
+                                <pre><code class="language-javascript">const url = s3.getSignedUrl('getObject', {
+  Bucket: 'my-app-uploads',
+  Key:    '12345/167890-avatar.png',
+  Expires: 60 // seconds
+});</code></pre>
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="comparison-table">
+                <h3>3. When to Use Which?</h3>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Factor</th>
+                                <th>Local Disk</th>
+                                <th>Cloud Storage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Scale</td>
+                                <td>Small apps, single server</td>
+                                <td>Multi-server, global user base</td>
+                            </tr>
+                            <tr>
+                                <td>Durability</td>
+                                <td>Manual backups</td>
+                                <td>SLA-backed replication</td>
+                            </tr>
+                            <tr>
+                                <td>Latency</td>
+                                <td>Lowest (intra-machine)</td>
+                                <td>Slightly higher (network)</td>
+                            </tr>
+                            <tr>
+                                <td>Cost</td>
+                                <td>Fixed server cost</td>
+                                <td>Pay-as-you-go storage and bandwidth charges</td>
+                            </tr>
+                            <tr>
+                                <td>Complexity</td>
+                                <td>Very simple</td>
+                                <td>Moderate—need SDKs, credentials, configuration</td>
+                            </tr>
+                            <tr>
+                                <td>CDN Integration</td>
+                                <td>Manual setup</td>
+                                <td>Native / seamless</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="best-practices">
+                    <h3>Best Practices</h3>
+                    <ol>
+                        <li><strong>Abstract Storage Logic</strong>
+                            <p>Write a small "storage service" module so you can swap between local and cloud without changing your route handlers.</p>
+                        </li>
+                        <li><strong>Environment Configuration</strong>
+                            <p>Keep credentials and bucket names in env vars, and never commit them.</p>
+                        </li>
+                        <li><strong>Serve via CDN</strong>
+                            <p>For production, front your cloud bucket with a CDN to reduce latency and offload traffic.</p>
+                        </li>
+                        <li><strong>Implement Cleanup Jobs</strong>
+                            <p>Periodically delete unused files or expired uploads (local cron jobs, or lifecycle policies in S3).</p>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="cloudinary">
+            <h2>Cloudinary for Image and Video Management</h2>
+            <p>Cloudinary is another very popular cloud-based service specifically tailored for <strong>image and video</strong> management. Here's the gist:</p>
+
+            <section id="cloudinary-intro">
+                <h3>What Is Cloudinary?</h3>
+                <p>Cloudinary is a SaaS platform that handles everything from <strong>image/video uploads</strong> to <strong>transformation</strong>, <strong>optimization</strong>, and <strong>global delivery</strong> via CDN—all through a simple API.</p>
+            </section>
+
+            <section id="cloudinary-features">
+                <h3>Key Features</h3>
+                <ol>
+                    <li>
+                        <strong>Automatic Optimization</strong>
+                        <ul>
+                            <li>Delivers images in the optimal format (WebP, AVIF) and quality for each device.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>On-the-fly Transformations</strong>
+                        <ul>
+                            <li>Resize, crop, watermark, format-convert, even apply AI-powered effects with simple URL parameters.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Secure, Scalable Storage</strong>
+                        <ul>
+                            <li>Built-in redundancy and versioning; no need to manage buckets or lifecycle policies.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Break-neck CDN Delivery</strong>
+                        <ul>
+                            <li>Built-in global CDN for ultra-low latency serving.</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="cloudinary-integration">
+                <h3>How to Integrate in Node.js</h3>
+                <ol>
+                    <li>
+                        <strong>Install the SDK</strong>
+                        <pre><code class="language-bash">npm install cloudinary multer-storage-cloudinary</code></pre>
+                    </li>
+                    <li>
+                        <strong>Configure Cloudinary</strong>
+                        <pre><code class="language-javascript">const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name:  process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:     process.env.CLOUDINARY_API_KEY,
+  api_secret:  process.env.CLOUDINARY_API_SECRET
+});</code></pre>
+                    </li>
+                    <li>
+                        <strong>Use Multer-Storage-Cloudinary</strong>
+                        <p>This package lets you plug Cloudinary directly into Multer's storage engine:</p>
+                        <pre><code class="language-javascript">const multer      = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'my-app-uploads',          // your Cloudinary folder
+    format: async (req, file) => 'png',// or derive from file.mimetype
+    public_id: (req, file) => `${Date.now()}-${file.originalname}`,
+  }
+});
+
+const upload = multer({ storage });</code></pre>
+                    </li>
+                    <li>
+                        <strong>Uploading in Your Route</strong>
+                        <pre><code class="language-javascript">app.post('/upload', upload.single('image'), (req, res) => {
+  // req.file contains { path, filename, ... }
+  // `req.file.path` is the Cloudinary URL
+  res.json({ url: req.file.path });
+});</code></pre>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="cloudinary-benefits">
+                <h3>Why Choose Cloudinary?</h3>
+                <ul>
+                    <li><strong>Simplicity</strong>: No need to write your own image-processing pipelines.</li>
+                    <li><strong>Rich Transformations</strong>: Hundreds of effects via URL API.</li>
+                    <li><strong>Analytics & Security</strong>: Detailed usage stats and fine-grained access controls.</li>
+                    <li><strong>Pay-as-you-go</strong>: Free tier available; scales with your needs.</li>
+                </ul>
+            </section>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 File Handling in Node.js Guide</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mongoose CRUD Tutorial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mongoose CRUD for MongoDB</h1>
+        <p class="subtitle">Building a robust data layer with Node.js</p>
+    </header>
+
+    <main>
+        <section id="odm-intro">
+            <h2>What is an ODM?</h2>
+            <p>An <strong>ODM (Object Data Modeling)</strong> library sits between your application code and your database, translating back and forth between native language objects — for example, JavaScript objects in Node.js — and the way data is stored in the database (MongoDB documents). It gives you:</p>
+            
+            <ul>
+                <li><strong>Schemas & Models:</strong> Define the structure and types of your data in code.</li>
+                <li><strong>Validation:</strong> Automatically enforce field requirements, data types, and custom rules before anything is written to the database.</li>
+                <li><strong>Convenient API:</strong> Use high-level methods (save(), find(), update(), etc.) instead of raw driver calls.</li>
+                <li><strong>Middleware/Hooks:</strong> Run logic before or after operations (e.g. hash a password before saving).</li>
+                <li><strong>Relationships & Population:</strong> Reference documents in different collections and automatically "join" them when you query.</li>
+            </ul>
+        </section>
+
+        <section id="mongoose-intro">
+            <h2>What Is Mongoose?</h2>
+            <p>Mongoose is the most popular ODM for MongoDB in Node.js. It provides all of the above features tailored to MongoDB's document model, plus:</p>
+            
+            <h3>Schema Definitions</h3>
+            <pre><code class="language-js">const userSchema = new mongoose.Schema({
+  name:  { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  age:   { type: Number, min: 0 }
+});</code></pre>
+
+            <h3>Model Creation</h3>
+            <pre><code class="language-js">const User = mongoose.model("User", userSchema);</code></pre>
+
+            <h3>Built-in Validation</h3>
+            <p>Ensures name and email are present, that email is unique, age isn't negative, etc.</p>
+
+            <h3>Query Helpers & Chaining</h3>
+            <pre><code class="language-js">User.find({ age: { $gte: 18 } })
+    .sort("name")
+    .limit(20)
+    .exec();</code></pre>
+
+            <h3>Population</h3>
+            <p>Link documents across collections and retrieve related data in one go.</p>
+
+            <h3>Plugins & Ecosystem</h3>
+            <p>A rich set of community plugins for pagination, full-text search, soft deletes, etc.</p>
+
+            <div class="info-box">
+                <p>By using Mongoose, you get a robust, schema-driven layer atop MongoDB's flexible document store—making your data access safer, more predictable, and easier to work with in a Node.js/Express app.</p>
+            </div>
+        </section>
+
+        <section id="project-structure">
+            <h2>Project Structure</h2>
+            <div class="code-tree">
+                <pre><code>my-app/
+│
+├─ src/
+│   ├─ config/           # environment & DB connection
+│   │   └─ db.js
+│   │
+│   ├─ models/           # Mongoose schemas & models
+│   │   └─ User.js
+│   │
+│   ├─ controllers/      # request-handling logic
+│   │   └─ userController.js
+│   │
+│   ├─ routes/           # Express routers
+│   │   └─ userRoutes.js
+│   │
+│   ├─ middleware/       # auth, error handlers, etc.
+│   │   └─ errorHandler.js
+│   │
+│   └─ app.js            # assemble Express app
+│
+├─ .env                  # secret keys, DB URI, port
+├─ package.json
+└─ server.js             # start server</code></pre>
+            </div>
+        </section>
+
+        <section id="connecting">
+            <h2>Connecting to MongoDB</h2>
+            
+            <h3>The Connection String (URI)</h3>
+            <ul class="connection-parts">
+                <li><strong>mongodb://</strong> tells Mongoose to use the standard MongoDB wire protocol over TCP.</li>
+                <li><strong>localhost:27017</strong> is the host and port of your MongoDB server (the default on most installs).</li>
+                <li><strong>/myapp</strong> at the end is the name of the database you want to use. If that database doesn't yet exist, MongoDB will create it as soon as you write your first document.</li>
+            </ul>
+
+            <h3>Under the Hood: MongoClient</h3>
+            <p>Mongoose wraps the official MongoDB Node.js driver (the MongoClient) and delegates to its MongoClient.connect() method.</p>
+            <p>That method opens a pool of TCP sockets to every server in the topology (for a standalone this is just localhost:27017) and runs the initial "hello" handshake to negotiate protocol versions and confirm the server is healthy.</p>
+
+            <h3>Connection Pool & Topology Monitoring</h3>
+            <p>Once connected, Mongoose keeps a pool of sockets open for you so that every query doesn't need to re-open a new TCP connection.</p>
+            <p>With <code>useUnifiedTopology: true</code>, the driver also monitors server health in the background and automatically reconnects or fails over if you're talking to a replica set.</p>
+
+            <h3>Binding Models to the Connection</h3>
+            <p>As soon as Mongoose successfully connects, any calls you make to <code>mongoose.model("User", userSchema)</code> or <code>const User = mongoose.model("User")</code> are wired up to that same underlying connection.</p>
+            <p>All your CRUD operations (<code>.find()</code>, <code>.save()</code>, etc.) then run over that socket pool against the <code>myapp.users</code> collection (or whichever collection your model maps to).</p>
+
+            <div class="summary-box">
+                <h4>So in plain terms:</h4>
+                <ul>
+                    <li><strong>"Where?"</strong> On your local machine (or remote server) at port 27017, in the myapp database.</li>
+                    <li><strong>Why that address?</strong> Because your connection string told Mongoose exactly which host, port, and database name to use.</li>
+                    <li><strong>How it stays connected?</strong> Through an internal pool of TCP connections managed by the MongoDB driver, keeping your app ready to send queries without delay.</li>
+                </ul>
+            </div>
+
+            <div class="note-box">
+                <p>We will use MongoDB Atlas to make this Realistic.</p>
+            </div>
+        </section>
+
+        <section id="dotenv">
+            <h2>Using dotenv for Configuration</h2>
+            <p><strong>dotenv</strong> is a tiny Node.js library that lets you keep configuration—like database URLs, API keys, or ports—in a simple, text-based .env file instead of hard-coding them into your source.</p>
+
+            <h3>Why use it?</h3>
+            <ul>
+                <li><strong>Separation of config and code:</strong> Keeps secrets and environment-specific settings out of your codebase.</li>
+                <li><strong>Easy switching:</strong> Different .env files for development, testing, or production.</li>
+                <li><strong>Zero boilerplate:</strong> Just drop a file in and it works.</li>
+            </ul>
+
+            <h3>How it works</h3>
+            <p>You create a file named <code>.env</code> in your project root:</p>
+            <pre><code>PORT=3000
+MONGO_URI=mongodb+srv://alice:Secret@cluster0.mongodb.net/myapp</code></pre>
+
+            <p>At the top of your entrypoint (e.g. server.js), you load and configure it:</p>
+            <pre><code class="language-js">import dotenv from "dotenv";
+dotenv.config();   // reads .env and populates process.env</code></pre>
+
+            <p>Anywhere in your code, access those variables with process.env:</p>
+            <pre><code class="language-js">const port    = process.env.PORT;
+const mongoUri = process.env.MONGO_URI;</code></pre>
+
+            <p>Behind the scenes, <code>dotenv.config()</code> reads your .env file synchronously, parses each KEY=VALUE line, and assigns them to <code>process.env</code> so your app can use them just like any other environment variable.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2024 Mongoose CRUD Tutorial</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Middlewares In Express.js</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Middlewares In Express.js</h1>
+            <p class="subtitle">Understanding the backbone of Express applications</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <p>
+                Think of middleware in Express.js as a set of "stations" or "checkpoints" along a highway that every car (HTTP request) must pass through before reaching its destination (your route handler). At each station, you can inspect the car, add a sticker (attach data to the request), reroute it, or even decide it shouldn't continue (send a response immediately).
+            </p>
+            
+            <div class="analogy-box">
+                <h3>Analogy: Airport Security</h3>
+                <ol>
+                    <li><strong>Check-in desk</strong>: Verifies you have a ticket (e.g., validating an API key).</li>
+                    <li><strong>Security screening</strong>: Scans your baggage (e.g., parsing JSON bodies or cookies).</li>
+                    <li><strong>Immigration</strong>: Checks your passport (e.g., verifying a JWT).</li>
+                    <li><strong>Boarding gate</strong>: Confirms you're at the right gate (e.g., enforcing route-specific rules).</li>
+                </ol>
+                <p>Only after passing through all these can you board the plane (reach your route's final handler). At any point, if something's wrong, you might be sent back home (an error response) or held for additional checks (another middleware).</p>
+            </div>
+
+            <div class="analogy-box">
+                <h3>Analogy: Assembly Line</h3>
+                <p>Imagine building a toy:</p>
+                <ol>
+                    <li><strong>Station 1</strong>: Adds the wheels (e.g., attaches helper methods to <code>req</code>).</li>
+                    <li><strong>Station 2</strong>: Paints the body (e.g., formats or sanitizes incoming data).</li>
+                    <li><strong>Station 3</strong>: Quality control (e.g., logging or authentication).</li>
+                    <li><strong>Station 4</strong>: Final packaging (e.g., sending the response).</li>
+                </ol>
+                <p>Each station takes the partially-built toy, does its job, then passes it down the line by calling <code>next()</code>. If a station spots a defect, it can stop the line and throw an error.</p>
+            </div>
+
+            <div class="benefit-box">
+                <h3>Why Use Middleware?</h3>
+                <ul>
+                    <li><strong>Reusability</strong>: Write once (e.g., an authentication check) and apply it to multiple routes.</li>
+                    <li><strong>Separation of concerns</strong>: Keep your route handlers clean by offloading common tasks (parsing, logging, error handling).</li>
+                    <li><strong>Flexibility</strong>: Compose and order middleware as needed—global (applies to all routes), route-specific, or even error-handling.</li>
+                </ul>
+            </div>
+
+            <div class="definition-box">
+                <h3>Official Definition</h3>
+                <p>
+                    In Express.js, a <strong>middleware function</strong> is a function that has access to the request object (<code>req</code>), the response object (<code>res</code>), and the next middleware function in the application's request-response cycle, denoted by a variable named <code>next</code>. Middleware can execute code, make changes to the request/response objects, end the request-response cycle, or call <code>next()</code> to pass control to the next middleware.
+                </p>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="middleware-types">
+            <h2>1. Middleware Types & Signatures</h2>
+
+            <div class="code-card">
+                <h3>1. Application-level middleware</h3>
+                <pre><code class="language-javascript">app.use([path], middlewareFunction)</code></pre>
+                <ul>
+                    <li>Runs for every request (or only those under <code>path</code>).</li>
+                </ul>
+            </div>
+
+            <div class="code-card">
+                <h3>2. Router-level middleware</h3>
+                <pre><code class="language-javascript">const router = express.Router();
+router.use([path], middlewareFunction);
+app.use('/users', router);</code></pre>
+                <ul>
+                    <li>Scoped to a sub-app (e.g. all <code>/users</code> routes).</li>
+                </ul>
+            </div>
+
+            <div class="code-card">
+                <h3>3. Error-handling middleware</h3>
+                <pre><code class="language-javascript">function(err, req, res, next) { … }</code></pre>
+                <ul>
+                    <li>Four parameters; only invoked when <code>next(err)</code> is called or an exception is thrown.</li>
+                </ul>
+            </div>
+
+            <div class="code-card">
+                <h3>4. Built-in middleware</h3>
+                <ul>
+                    <li><code>express.json()</code>, <code>express.urlencoded()</code>, <code>express.static()</code>, etc.</li>
+                </ul>
+            </div>
+
+            <div class="code-card">
+                <h3>5. Third-party middleware</h3>
+                <ul>
+                    <li>e.g. <code>morgan</code>, <code>cors</code>, <code>helmet</code>, <code>body-parser</code> (legacy), <code>compression</code>, <code>cookie-parser</code>.</li>
+                </ul>
+            </div>
+
+            <div class="code-card">
+                <h3>6. Route (inline) middleware</h3>
+                <pre><code class="language-javascript">app.get('/profile', authMiddleware, (req, res) => { … });</code></pre>
+            </div>
+
+            <div class="code-card">
+                <h3>7. Parameterized middleware</h3>
+                <pre><code class="language-javascript">router.param('userId', (req, res, next, id) => { … });</code></pre>
+                <ul>
+                    <li>Automates loading/reporting of route parameters like <code>:userId</code>.</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="request-response-cycle">
+            <h2>2. The Request–Response Cycle</h2>
+
+            <p>Every incoming request travels through your middleware stack in order:</p>
+
+            <div class="flow-diagram">
+                <div class="flow-step">1. Incoming HTTP request</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">2. Global/app-level middleware (<code>app.use(express.json())</code>, logging, etc.)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">3. Route-specific middleware (<code>app.get('/foo', mw, handler)</code>)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">4. Router-level middleware (<code>router.use()</code>)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">5. Parameter handlers (<code>router.param()</code>)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">6. Error-handling middleware (if any error occurred)</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">7. Final route handler</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">8. Response sent back</div>
+            </div>
+
+            <div class="key-point">
+                <p>Key point: each middleware must call <code>next()</code> (or <code>next(err)</code>) to hand off control, or else the request "hangs."</p>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="error-handling">
+            <h2>3. Error Handling Patterns</h2>
+
+            <div class="code-example">
+                <h3>Synchronous errors</h3>
+                <pre><code class="language-javascript">app.get('/sync', (req, res, next) => {
+  if (!req.user) throw new Error('No user');   // auto goes to error middleware
+});</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Asynchronous errors (Promises / async-await)</h3>
+                <pre><code class="language-javascript">// WRONG: uncaught rejection is dropped   
+app.get('/async', async (req, res) => {
+  await somethingThatFails();
+  res.send('ok');
+});
+
+// RIGHT: wrap or use helper
+const wrap = fn => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+app.get('/async', wrap(async (req, res) => {
+  await somethingThatFails();
+  res.send('ok');
+}));</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h3>Custom error middleware</h3>
+                <pre><code class="language-javascript">app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error'
+  });
+});</code></pre>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="mounting-ordering">
+            <h2>4. Mounting & Ordering</h2>
+
+            <ul class="key-points">
+                <li><strong>Order matters</strong>: middleware runs in the order you <code>app.use()</code> it.</li>
+                <li><strong>Path-based mounting</strong>:
+                    <pre><code class="language-javascript">app.use('/api', apiLogger, apiRouter);</code></pre>
+                </li>
+                <li><strong>Selective mounting</strong>: pass a path string or array:
+                    <pre><code class="language-javascript">app.use(['/admin', '/settings'], authMiddleware);</code></pre>
+                </li>
+            </ul>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="common-middleware">
+            <h2>5. Common Built-ins & Third-Party</h2>
+
+            <div class="table-container">
+                <table class="middleware-table">
+                    <thead>
+                        <tr>
+                            <th>Middleware</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>express.json()</code></td>
+                            <td>Parse JSON body into <code>req.body</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>express.urlencoded()</code></td>
+                            <td>Parse URL-encoded form data</td>
+                        </tr>
+                        <tr>
+                            <td><code>express.static()</code></td>
+                            <td>Serve static assets (JS/CSS/images)</td>
+                        </tr>
+                        <tr>
+                            <td><code>cookie-parser</code></td>
+                            <td>Parse cookies into <code>req.cookies</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>morgan('tiny')</code></td>
+                            <td>HTTP request logging</td>
+                        </tr>
+                        <tr>
+                            <td><code>cors()</code></td>
+                            <td>Enable CORS headers</td>
+                        </tr>
+                        <tr>
+                            <td><code>helmet()</code></td>
+                            <td>Secure HTTP headers (XSS, MIME sniffing, etc)</td>
+                        </tr>
+                        <tr>
+                            <td><code>compression()</code></td>
+                            <td>Gzip/deflate response compression</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="note">Use them near the top of your stack, before routes.</p>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="custom-middleware">
+            <h2>6. Custom Middleware Examples</h2>
+
+            <div class="example-box">
+                <h3>a) Authentication Guard</h3>
+                <pre><code class="language-javascript">function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ msg: 'No token' });
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload;    // attach user data
+    next();
+  } catch (err) {
+    next(err);
+  }
+}</code></pre>
+            </div>
+
+            <div class="example-box">
+                <h3>b) Request Logger</h3>
+                <pre><code class="language-javascript">function logReq(req, res, next) {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+}</code></pre>
+            </div>
+
+            <div class="example-box">
+                <h3>c) Rate Limiter (Using a closure)</h3>
+                <pre><code class="language-javascript">function rateLimiter({ windowMs, max }) {
+  const hits = new Map();
+  return (req, res, next) => {
+    const key = req.ip;
+    const data = hits.get(key) || { count: 0, start: Date.now() };
+    if (Date.now() - data.start > windowMs) {
+      data.count = 0;
+      data.start = Date.now();
+    }
+    data.count++;
+    hits.set(key, data);
+    if (data.count > max) return res.status(429).send('Too many requests');
+    next();
+  };
+}
+// usage:
+app.use(rateLimiter({ windowMs: 60_000, max: 100 }));</code></pre>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="best-practices">
+            <h2>7. Best Practices & Tips</h2>
+
+            <ol class="best-practices">
+                <li><strong>Keep middleware focused</strong>: one concern per function (e.g., parsing, auth, logging).</li>
+                <li><strong>Always call <code>next()</code> or <code>next(err)</code></strong>: avoid hanging requests.</li>
+                <li><strong>Handle async errors</strong>: wrap async handlers to forward errors.</li>
+                <li><strong>Order thoughtfully</strong>: parsing middleware first, then authentication, then business logic, then error handlers last.</li>
+                <li><strong>Avoid blocking code</strong>: middleware should be non-blocking (no CPU-heavy loops).</li>
+                <li><strong>Use parameter middleware</strong> for loading DB entities by ID:
+                    <pre><code class="language-javascript">router.param('postId', async (req, res, next, id) => {
+  req.post = await Post.findById(id);
+  if (!req.post) return next(new Error('Not found'));
+  next();
+});</code></pre>
+                </li>
+                <li><strong>Centralize error formats</strong>: have a single error formatter so all errors return consistent JSON.</li>
+            </ol>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="complete-example">
+            <h2>8. Putting It All Together</h2>
+
+            <div class="full-example">
+                <pre><code class="language-javascript">import express from 'express';
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import cors from 'cors';
+
+const app = express();
+
+// ─── Global Middleware ─────────────────────────────────────
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(morgan('tiny'));
+
+// ─── Rate Limiter ─────────────────────────────────────────
+app.use(rateLimiter({ windowMs: 60000, max: 100 }));
+
+// ─── Auth Middleware ──────────────────────────────────────
+function requireAuth(req, res, next) { /* … */ }
+
+// ─── Routers ──────────────────────────────────────────────
+const userRouter = express.Router();
+
+userRouter.post('/register', async (req, res, next) => {
+  // hashing, saving user…
+});
+
+userRouter.post('/login', async (req, res, next) => {
+  // verify password, send JWT…
+});
+
+userRouter.get('/me', requireAuth, (req, res) => {
+  res.json(req.user);
+});
+
+app.use('/users', userRouter);
+
+// ─── 404 Handler ──────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({ msg: 'Not Found' });
+});
+
+// ─── Error Handler ────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ message: err.message });
+});
+
+// ─── Start ────────────────────────────────────────────────
+mongoose.connect(process.env.MONGO_URI).then(() => {
+  app.listen(3000, () => console.log('Server listening on 3000'));
+});</code></pre>
+            </div>
+
+            <div class="definition-box">
+                <h3>"Official" Definition (revisited)</h3>
+                <p>A <strong>middleware function</strong> in Express.js is any function with signature</p>
+                <pre><code class="language-javascript">(req, res, next) ⇒ void</code></pre>
+                <p>or, for errors,</p>
+                <pre><code class="language-javascript">(err, req, res, next) ⇒ void</code></pre>
+                <p>that sits in the HTTP request–response cycle, having the ability to inspect or modify <code>req</code>/<code>res</code>, end the cycle by sending a response, or pass control by calling <code>next()</code> (or <code>next(err)</code> for errors).</p>
+            </div>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="deep-dive">
+            <h2>Deep Dive: Common Middleware Implementations</h2>
+
+            <section id="request-logging-middleware">
+                <h3>1. Request-Logging Middleware</h3>
+
+                <div class="explanation-box">
+                    <h4>What Is It?</h4>
+                    <p>Think of this as a stopwatch and notepad that follows every request through your app, then writes down how long it took and what happened.</p>
+                </div>
+
+                <div class="code-breakdown">
+                    <h4>The Code, Broken Down</h4>
+                    <pre><code class="language-javascript">export function requestLogger(req, res, next) {
+  const startHrTime = process.hrtime();</code></pre>
+                    <div class="code-explanation">
+                        <h5>1. <code>process.hrtime()</code></h5>
+                        <ul>
+                            <li>This is Node.js's high-resolution timer. It gives you a very precise start time (seconds + nanoseconds).</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">  res.on('finish', () => {</code></pre>
+                    <div class="code-explanation">
+                        <h5>2. Respond-finish event</h5>
+                        <ul>
+                            <li>We tell the response object: "When you're done sending data back to the client ('finish'), run this function."</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    const [seconds, nanoseconds] = process.hrtime(startHrTime);
+    const durationMs = (seconds * 1e3 + nanoseconds / 1e6).toFixed(2);</code></pre>
+                    <div class="code-explanation">
+                        <h5>3. Calculate elapsed time</h5>
+                        <ul>
+                            <li>We call <code>process.hrtime(startHrTime)</code> again, passing the start time.</li>
+                            <li>It returns how much time has passed as <code>[seconds, nanoseconds]</code>.</li>
+                            <li>We convert that to milliseconds and round to two decimals.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    console.log(
+      `[${new Date().toISOString()}] ` +
+      `${req.method} ${req.originalUrl} ` +
+      `→ ${res.statusCode} ` +
+      `(${durationMs} ms)`
+    );
+  });</code></pre>
+                    <div class="code-explanation">
+                        <h5>4. Log it neatly</h5>
+                        <ul>
+                            <li><strong>Timestamp</strong>: When the request happened.</li>
+                            <li><strong>Method & URL</strong>: e.g. <code>GET /api/items</code>.</li>
+                            <li><strong>Status code</strong>: e.g. <code>→ 200</code>.</li>
+                            <li><strong>Time taken</strong>: e.g. <code>(12.34 ms)</code>.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">  next();
+}</code></pre>
+                    <div class="code-explanation">
+                        <h5>5. <code>next()</code></h5>
+                        <ul>
+                            <li>This tells Express: "I'm done—send this request on to the next middleware or route."</li>
+                            <li>If we forgot <code>next()</code>, the request would hang forever.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="usage-example">
+                    <h4>How to Use It</h4>
+                    <pre><code class="language-javascript">import { requestLogger } from './logger.js';
+app.use(requestLogger);</code></pre>
+                    <ul>
+                        <li><strong><code>app.use()</code></strong> makes it run for <strong>every</strong> request, before your routes.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="auth-middleware">
+                <h3>2. Authentication Middleware</h3>
+
+                <div class="explanation-box">
+                    <h4>What Is It?</h4>
+                    <p>Imagine a bouncer at a club's entrance checking your VIP pass (JWT). If it's valid, you get inside; if not, you're turned away.</p>
+                </div>
+
+                <div class="code-breakdown">
+                    <h4>The Code, Step by Step</h4>
+                    <pre><code class="language-javascript">import jwt from 'jsonwebtoken';
+import User from './models/User.js';</code></pre>
+                    <div class="code-explanation">
+                        <ul>
+                            <li>We need the JWT library and our Mongoose user model.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">export async function requireAuth(req, res, next) {
+  try {</code></pre>
+                    <div class="code-explanation">
+                        <ul>
+                            <li>We wrap everything in a <code>try/catch</code> so that any error (missing or bad token, database issue) is caught.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;</code></pre>
+                    <div class="code-explanation">
+                        <h5>1. Grab the header</h5>
+                        <ul>
+                            <li>We look at <code>req.headers.authorization</code>, which should be a string like <code>"Bearer abc.def.ghi"</code>.</li>
+                            <li>If it starts with <code>"Bearer "</code>, we remove that prefix and keep the actual token. Otherwise, we set <code>token</code> to <code>null</code>.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }</code></pre>
+                    <div class="code-explanation">
+                        <h5>2. No token? Stop here.</h5>
+                        <ul>
+                            <li>If there's no token, we send back <strong>401 Unauthorized</strong>, with a friendly JSON message.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    const payload = jwt.verify(token, process.env.JWT_SECRET);</code></pre>
+                    <div class="code-explanation">
+                        <h5>3. Verify the token</h5>
+                        <ul>
+                            <li><code>jwt.verify()</code> checks that the token signature matches our secret key (from <code>process.env.JWT_SECRET</code>).</li>
+                            <li>If it's invalid or expired, this line throws an error, which jumps us to the <code>catch</code> block.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    const user = await User.findById(payload.userId).select('-passwordHash');</code></pre>
+                    <div class="code-explanation">
+                        <h5>4. Load the user</h5>
+                        <ul>
+                            <li>The token payload usually has something like <code>{ userId: "123abc" }</code>.</li>
+                            <li>We ask MongoDB for that user by ID, <strong>excluding</strong> the password hash field (for security).</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }</code></pre>
+                    <div class="code-explanation">
+                        <h5>5. User must exist</h5>
+                        <ul>
+                            <li>If the ID in the token doesn't match any user, we again send a 401.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">    req.user = user;
+    next();</code></pre>
+                    <div class="code-explanation">
+                        <h5>6. Attach & Continue</h5>
+                        <ul>
+                            <li>We put the Mongoose user document onto <code>req.user</code>, so downstream handlers can read it without another lookup.</li>
+                            <li>Then we call <code>next()</code> so the request continues to the protected route.</li>
+                        </ul>
+                    </div>
+
+                    <pre><code class="language-javascript">  } catch (err) {
+    console.error('Auth error:', err);
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}</code></pre>
+                    <div class="code-explanation">
+                        <h5>7. Catch all errors</h5>
+                        <ul>
+                            <li>Any thrown errors (bad token, DB errors) end up here.</li>
+                            <li>We log it on the server, and send back <strong>401 Unauthorized</strong> with a clear message.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="usage-example">
+                    <h4>How to Protect Routes</h4>
+                    <pre><code class="language-javascript">import { requireAuth } from './auth.js';
+
+app.get('/profile', requireAuth, (req, res) => {
+  // Now safe to use req.user
+  res.json({ user: req.user });
+});</code></pre>
+                    <ul>
+                        <li>Just insert <code>requireAuth</code> as the <strong>second argument</strong> in any route.</li>
+                        <li>Express runs it before your final handler.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="putting-together">
+                <h3>3. Putting It All Together</h3>
+
+                <div class="code-example">
+                    <h4>1. Global setup</h4>
+                    <pre><code class="language-javascript">app.use(requestLogger);
+app.use(express.json());</code></pre>
+                    <ul>
+                        <li>Every request is logged, and JSON bodies are parsed.</li>
+                    </ul>
+                </div>
+
+                <div class="code-example">
+                    <h4>2. Public routes</h4>
+                    <pre><code class="language-javascript">app.post('/register', registerHandler);
+app.post('/login', loginHandler);</code></pre>
+                </div>
+
+                <div class="code-example">
+                    <h4>3. Protected routes</h4>
+                    <pre><code class="language-javascript">app.use('/api', requireAuth);
+app.get('/api/profile', profileHandler);</code></pre>
+                    <ul>
+                        <li>Here, every <code>/api/*</code> route requires a valid JWT.</li>
+                    </ul>
+                </div>
+
+                <div class="code-example">
+                    <h4>4. Error & 404 handlers</h4>
+                    <pre><code class="language-javascript">app.use((req, res) => res.status(404).json({ message: 'Not Found' }));
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ message: err.message });
+});</code></pre>
+                </div>
+            </section>
+
+            <div class="summary-box">
+                <h3>Why This Matters</h3>
+                <ul>
+                    <li><strong>Separation of Concerns</strong>: Logging and auth are handled in their own, reusable functions—your routes stay focused purely on business logic.</li>
+                    <li><strong>Security</strong>: No route accidentally skips auth, because you explicitly "mount" the middleware wherever it's needed.</li>
+                    <li><strong>Maintainability</strong>: Changing how you log or verify tokens only involves editing one file, not every route.</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="divider section-divider"></div>
+
+        <section id="diy-vs-library">
+            <h2>DIY vs. Library Implementations</h2>
+
+            <section id="body-parsing">
+                <h3>1. Body Parsing</h3>
+
+                <div class="comparison-box">
+                    <div class="comparison-left">
+                        <h4>A. DIY JSON Body Parser</h4>
+                        <pre><code class="language-javascript">// DIY JSON parser
+app.use((req, res, next) => {
+  // 1. Only parse JSON requests
+  const contentType = req.headers['content-type'] || '';
+  if (!contentType.includes('application/json')) {
+    return next();
+  }
+
+  // 2. Buffer the incoming data
+  let raw = '';
+  req.on('data', chunk => {
+    raw += chunk;               // accumulate chunks into a string
+    if (raw.length > 1e6) {     // 1MB limit for safety
+      res.status(413).send('Payload too large');
+      req.connection.destroy();
+    }
+  });
+
+  // 3. When finished reading
+  req.on('end', () => {
+    try {
+      req.body = JSON.parse(raw);  // parse JSON, attach to req.body
+      next();
+    } catch (err) {
+      res.status(400).json({ message: 'Invalid JSON' });
+    }
+  });
+});</code></pre>
+                        <div class="explanation">
+                            <h5>Step-by-step explanation</h5>
+                            <ol>
+                                <li><strong>Check content type</strong>: We only want to parse <code>application/json</code>, so anything else skips this middleware.</li>
+                                <li><strong>Buffer data</strong>: As Node streams the request body, we concatenate chunks into <code>raw</code>. We also guard against huge payloads (1 MB) to avoid DOS.</li>
+                                <li><strong><code>end</code> event</strong>: When the stream ends, we <code>JSON.parse(raw)</code>. If it succeeds, we assign the resulting object to <code>req.body</code>. Otherwise we return a 400 error.</li>
+                                <li><strong><code>next()</code></strong>: Called only after parsing—otherwise the request would hang.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="comparison-right">
+                        <h4>B. Using Express's Built-In Parser</h4>
+                        <pre><code class="language-javascript">import express from 'express';
+const app = express();
+
+app.use(express.json({ limit: '1mb' }));</code></pre>
+                        <div class="explanation">
+                            <h5>How it works</h5>
+                            <ul>
+                                <li><strong><code>express.json()</code></strong> under the hood does exactly what our DIY version does, but:
+                                    <ol>
+                                        <li>Supports configurable size limits (here, 1 MB).</li>
+                                        <li>Handles edge cases (malformed chunks, encoding).</li>
+                                        <li>Throws a nice <code>PayloadTooLargeError</code> if over limit.</li>
+                                        <li>Also parses <code>application/*+json</code> types by default.</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="request-logging-compare">
+                <h3>2. Request Logging</h3>
+
+                <div class="comparison-box">
+                    <div class="comparison-left">
+                        <h4>A. DIY Logger</h4>
+                        <pre><code class="language-javascript">// DIY request logger
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  // When the response finishes, log details
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(
+      `${new Date().toISOString()} | ` +     // timestamp
+      `${req.method} ${req.originalUrl} | ` + // method & URL
+      `Status: ${res.statusCode} | ` +        // status code
+      `Time: ${duration}ms`                   // duration
+    );
+  });
+
+  next();
+});</code></pre>
+                        <div class="explanation">
+                            <h5>Step-by-step explanation</h5>
+                            <ol>
+                                <li><strong>Record start time</strong> using <code>Date.now()</code>.</li>
+                                <li><strong>Attach <code>finish</code> listener</strong>: once headers and body are sent, Express emits <code>finish</code>.</li>
+                                <li><strong>Compute duration</strong> by subtracting start from current time.</li>
+                                <li><strong>Log a single line</strong> with ISO timestamp, HTTP method + URL, status code, and elapsed ms.</li>
+                                <li><strong><code>next()</code></strong> immediately so the request proceeds.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="comparison-right">
+                        <h4>B. Using Morgan</h4>
+                        <pre><code class="language-javascript">import morgan from 'morgan';
+app.use(morgan('combined'));</code></pre>
+                        <div class="explanation">
+                            <h5>How it works</h5>
+                            <ul>
+                                <li><strong>Predefined formats</strong>:
+                                    <ul>
+                                        <li><code>'combined'</code> logs Apache-style common fields plus referrer and user-agent.</li>
+                                        <li>Other options (<code>'tiny'</code>, <code>'dev'</code>, etc.) trade verbosity vs. succinctness.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Colorized output</strong> in dev mode, and you can stream logs to files or external loggers.</li>
+                                <li><strong>Under the hood</strong>, Morgan does essentially the same: records start time, listens for <code>finish</code>, then interpolates tokens (method, URL, status, response-time, etc.) into your chosen format.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="cors-handling">
+                <h3>3. CORS Handling</h3>
+
+                <div class="comparison-box">
+                    <div class="comparison-left">
+                        <h4>A. DIY CORS Middleware</h4>
+                        <pre><code class="language-javascript">// DIY CORS
+app.use((req, res, next) => {
+  // 1. Allow any origin
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // 2. Specify allowed methods & headers
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization'
+  );
+
+  // 3. Handle preflight (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});</code></pre>
+                        <div class="explanation">
+                            <h5>Step-by-step explanation</h5>
+                            <ol>
+                                <li><strong><code>Access-Control-Allow-Origin: *</code></strong> allows any website to call your API.</li>
+                                <li><strong><code>Allow-Methods</code> & <code>Allow-Headers</code></strong> tell browsers what methods and headers are permitted.</li>
+                                <li><strong>OPTIONS check</strong>: For preflight requests, respond immediately with 204 No Content so the browser can continue.</li>
+                                <li><strong><code>next()</code></strong> for all non-OPTIONS calls.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="comparison-right">
+                        <h4>B. Using the <code>cors</code> Package</h4>
+                        <pre><code class="language-javascript">import cors from 'cors';
+app.use(cors({
+  origin: ['https://app.example.com', 'https://admin.example.com'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+}));</code></pre>
+                        <div class="explanation">
+                            <h5>How it works</h5>
+                            <ul>
+                                <li><strong>Dynamic origin</strong>: You can whitelist specific domains or supply a function for custom logic.</li>
+                                <li><strong>Preflight auto-handling</strong>: <code>cors()</code> intercepts OPTIONS and replies correctly.</li>
+                                <li><strong>Credentials</strong>: If you need cookies or HTTP auth, <code>credentials: true</code> adds <code>Access-Control-Allow-Credentials</code>.</li>
+                                <li><strong>All headers & methods</strong> become easy to configure via options, instead of manual <code>setHeader</code> calls.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="security-headers">
+                <h3>4. Security Headers with Helmet</h3>
+
+                <div class="comparison-box">
+                    <div class="comparison-left">
+                        <h4>A. DIY Security Headers</h4>
+                        <pre><code class="language-javascript">// DIY security headers
+app.use((req, res, next) => {
+  // 1. Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+
+  // 2. Basic XSS protection
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+
+  // 3. Prevent MIME sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // 4. Enforce HTTPS for 1 year
+  res.setHeader(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains'
+  );
+
+  next();
+});</code></pre>
+                        <div class="explanation">
+                            <h5>Step-by-step explanation</h5>
+                            <dl>
+                                <dt><strong>X-Frame-Options: DENY</strong></dt>
+                                <dd>
+                                    <p><strong>What it does:</strong> Prevents your site from being shown inside someone else's page via an &lt;iframe&gt;.</p>
+                                    <p><strong>Analogy:</strong> Imagine your storefront has a big window. Without this header, anyone could build a fake shop around your window and show your real display inside a tiny hole in their wall. With DENY, you lock that window so it can't go into anyone else's wall.</p>
+                                </dd>
+                                
+                                <dt><strong>X-XSS-Protection: 1; mode=block</strong></dt>
+                                <dd>
+                                    <p><strong>What it does:</strong> Activates a basic, built-in browser filter that tries to catch simple "script injection" attacks.</p>
+                                    <p><strong>Analogy:</strong> Think of it like a bouncer at your site's front door who looks for suspicious behavior (like someone trying to sneak a harmful note inside). If they spot it, they block the whole page rather than let it load.</p>
+                                </dd>
+                                
+                                <dt><strong>X-Content-Type-Options: nosniff</strong></dt>
+                                <dd>
+                                    <p><strong>What it does:</strong> Tells the browser, "Don't try to guess the file type—trust me, I know what I'm sending."</p>
+                                    <p><strong>Analogy:</strong> Suppose you hand someone a sealed envelope stamped "INVOICE." Without this header, they might open it assuming it's a letter, even if it's actually a drawing. nosniff says "Nope—if I call it an invoice, treat it as an invoice, don't second-guess me."</p>
+                                </dd>
+                                
+                                <dt><strong>Strict-Transport-Security: max-age=31536000; includeSubDomains</strong></dt>
+                                <dd>
+                                    <p><strong>What it does:</strong> Instructs browsers to always use HTTPS (the secure lock) for your domain and its subdomains for the next year.</p>
+                                    <p><strong>Analogy:</strong> It's like telling visitors, "From now on—and for the next 365 days—only knock on the front door (HTTPS); never try the back door (HTTP)." If they ever try the back door, they're automatically redirected to the front.</p>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="comparison-right">
+                        <h4>B. Using Helmet</h4>
+                        <pre><code class="language-javascript">import helmet from 'helmet';
+app.use(helmet());</code></pre>
+                        <div class="explanation">
+                            <h5>How it works</h5>
+                            <ul>
+                                <li><strong>Default helmet()</strong> bundles multiple smaller middleware:
+                                    <ul>
+                                        <li><code>helmet.frameguard()</code> for clickjacking,</li>
+                                        <li><code>helmet.xssFilter()</code>,</li>
+                                        <li><code>helmet.noSniff()</code>,</li>
+                                        <li><code>helmet.hsts()</code>,</li>
+                                        <li>plus others like <code>helmet.referrerPolicy()</code>, <code>helmet.dnsPrefetchControl()</code>, etc.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Configurable</strong>: You can disable or tweak any sub-module:
+                                    <pre><code class="language-javascript">app.use(helmet({
+  contentSecurityPolicy: false,   // if you need a custom CSP
+  referrerPolicy: { policy: 'no-referrer' }
+}));</code></pre>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <h3>Why Choose Third-Party?</h3>
+                    <ul>
+                        <li><strong>Edge cases handled</strong>: Size limits, streaming quirks, preflight edge-cases.</li>
+                        <li><strong>Security updates</strong>: Maintainers patch vulnerabilities in parsing, headers, etc.</li>
+                        <li><strong>Less boilerplate</strong>: One line of configuration instead of dozens of manual headers and listeners.</li>
+                    </ul>
+                    <p>With this, you can see exactly what each middleware is doing under the hood—and why using <code>express.json()</code>, <code>morgan()</code>, <code>cors()</code>, and <code>helmet()</code> is such a time- and headache-saver!</p>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Express.js Middleware Guide</p>
+        </div>
+    </footer>
+</body>
+</html>

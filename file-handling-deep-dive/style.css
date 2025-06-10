@@ -1,0 +1,400 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+/* Base styles */
+:root {
+    /* Colors */
+    --primary: #3498db;       /* Blue */
+    --primary-light: #5dade2;
+    --primary-dark: #2980b9;
+    --secondary: #e74c3c;     /* Red for accents */
+    --text: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-light: #f9f9f9;
+    --bg-code: #282c34;
+    --code-text: #abb2bf;
+    --border: #ecf0f1;
+    --card-bg: #ffffff;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --info: #3498db;
+    
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Fira Code', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-xxl: 3rem;
+    
+    /* Borders */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+}
+
+/* Reset and base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    color: var(--text);
+    background-color: var(--bg-light);
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--space-md);
+    line-height: 1.3;
+    color: var(--text);
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+}
+
+h2 {
+    font-size: 2rem;
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--primary);
+    margin-top: var(--space-xxl);
+    margin-bottom: var(--space-xl);
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-top: var(--space-xl);
+    color: var(--primary);
+}
+
+h4 {
+    font-size: 1.25rem;
+    margin-top: var(--space-lg);
+    color: var(--text);
+}
+
+h5 {
+    font-size: 1.1rem;
+    margin-top: var(--space-md);
+    color: var(--text);
+    font-weight: 600;
+}
+
+p {
+    margin-bottom: var(--space-md);
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+code {
+    font-family: var(--font-mono);
+    background-color: rgba(0,0,0,0.05);
+    border-radius: var(--radius-sm);
+    padding: 0.1em 0.3em;
+    font-size: 0.9em;
+}
+
+pre {
+    background-color: var(--bg-code);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin: var(--space-md) 0;
+    overflow-x: auto;
+    position: relative;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    color: var(--code-text);
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+ol, ul {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-xl);
+}
+
+li {
+    margin-bottom: var(--space-xs);
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: var(--space-xl) 0;
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-md);
+}
+
+header h1 {
+    color: white;
+    margin-bottom: 0;
+}
+
+/* Main content */
+main {
+    padding: var(--space-lg) 0 var(--space-xxl) 0;
+}
+
+/* Dividers */
+.divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: var(--space-xl) 0;
+}
+
+.section-divider {
+    height: 2px;
+    background-color: var/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+/* Base styles */
+:root {
+    /* Colors */
+    --primary: #3498db;       /* Blue */
+    --primary-light: #5dade2;
+    --primary-dark: #2980b9;
+    --secondary: #e74c3c;     /* Red for accents */
+    --text: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-light: #f9f9f9;
+    --bg-code: #282c34;
+    --code-text: #abb2bf;
+    --border: #ecf0f1;
+    --card-bg: #ffffff;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --info: #3498db;
+    
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Fira Code', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-xxl: 3rem;
+    
+    /* Borders */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+}
+
+/* Reset and base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    color: var(--text);
+    background-color: var(--bg-light);
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--space-md);
+    line-height: 1.3;
+    color: var(--text);
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+}
+
+h2 {
+    font-size: 2rem;
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--primary);
+    margin-top: var(--space-xxl);
+    margin-bottom: var(--space-xl);
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-top: var(--space-xl);
+    color: var(--primary);
+}
+
+h4 {
+    font-size: 1.25rem;
+    margin-top: var(--space-lg);
+    color: var(--text);
+}
+
+h5 {
+    font-size: 1.1rem;
+    margin-top: var(--space-md);
+    color: var(--text);
+    font-weight: 600;
+}
+
+p {
+    margin-bottom: var(--space-md);
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+code {
+    font-family: var(--font-mono);
+    background-color: rgba(0,0,0,0.05);
+    border-radius: var(--radius-sm);
+    padding: 0.1em 0.3em;
+    font-size: 0.9em;
+}
+
+pre {
+    background-color: var(--bg-code);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin: var(--space-md) 0;
+    overflow-x: auto;
+    position: relative;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    color: var(--code-text);
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+ol, ul {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-xl);
+}
+
+li {
+    margin-bottom: var(--space-xs);
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: var(--space-xl) 0;
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-md);
+}
+
+header h1 {
+    color: white;
+    margin-bottom: 0;
+}
+
+/* Main content */
+main {
+    padding: var(--space-lg) 0 var(--space-xxl) 0;
+}
+
+/* Dividers */
+.divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: var(--space-xl) 0;
+}
+/* For the .section-divider rule */
+.section-divider {
+    height: 2px;
+    background-color: var(--primary-light);
+    margin: var(--space-xxl) 0;
+}
+/* Additional styles for file handling page */
+.intro {
+    margin-bottom: var(--space-xl);
+}
+
+.code-example, .feature-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.feature-card {
+    border-left: 4px solid var(--primary);
+}
+
+footer {
+    background-color: var(--text);
+    color: white;
+    padding: var(--space-lg) 0;
+    margin-top: var(--space-xxl);
+}
+
+footer p {
+    margin-bottom: 0;
+    text-align: center;
+}

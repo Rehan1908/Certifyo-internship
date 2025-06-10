@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to JWTs</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Introduction to JWTs</h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="authentication-intro">
+            <p class="intro-text">
+                Authentication is the process of verifying who someone (or something) is before granting access to a system or a service. 
+                In other words, it's how the backend "checks" that a user is truly who they claim to be. Below is an overview of what 
+                authentication means and how it fits into the journey we've taken so far on the backend:
+            </p>
+
+            <section id="backend-journey">
+                <h2>1. Recap of Our Backend Journey</h2>
+
+                <div class="subsection">
+                    <h3>How the Internet Works</h3>
+                    <ul>
+                        <li>We started by understanding basic networking: clients (browsers) send HTTP requests over the internet to servers.</li>
+                        <li>We learned that servers listen for requests, process them, and send back HTTP responses (HTML, JSON, files, etc.).</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Building a Simple Node.js/Express Server</h3>
+                    <ul>
+                        <li>Next, we saw how to spin up a Node.js server using the http module (or Express).</li>
+                        <li>We covered routes (e.g., GET /, POST /data) and learned how to send back plain-text or JSON responses.</li>
+                        <li>We practiced parsing incoming request data (query parameters, body payloads) and sending back appropriate responses.</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Interacting with Files and Modules</h3>
+                    <ul>
+                        <li>We went through using built-in modules like fs, path, and os to handle file reads/writes, deal with file paths, and access system info.</li>
+                        <li>We learned how to split our code into separate modules (e.g., add.js) and import them so our server stays organized.</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Handling JSON, Errors, and Responses</h3>
+                    <ul>
+                        <li>We explored sending JSON responses (e.g., res.json({ message: "Hello" })) instead of plain text.</li>
+                        <li>We added middleware for error handling, logging, and potentially body-parsing (using express.json()).</li>
+                        <li>At this stage, our server could respond, but it didn't know anything about "users" or "security."</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="why-authentication">
+                <h2>2. Why We Need Authentication</h2>
+                <p>Once a backend can accept data and respond, the natural next step is adding user-centric features. Imagine you want to:</p>
+                <ul>
+                    <li>Allow users to create accounts and log in.</li>
+                    <li>Restrict certain routes so that only logged-in users can access them (e.g., viewing or editing personal profiles).</li>
+                    <li>Keep sensitive data (like order histories, private messages, or user settings) safe from unauthorized access.</li>
+                </ul>
+                <p>To do that, the backend must confirm that each request actually comes from a valid, authenticated user. Without authentication, anyone could pretend to be anyone else, leading to data leaks or malicious actions.</p>
+            </section>
+
+            <section id="auth-vs-authorization">
+                <h2>3. Authentication vs. Authorization</h2>
+                <p>It's helpful to distinguish between two related concepts:</p>
+                
+                <div class="comparison-box">
+                    <div class="comparison-item">
+                        <h3>Authentication</h3>
+                        <p><em>"Who are you?"</em></p>
+                        <p>The process of verifying a user's identity (usually by checking credentials like a username/password, an API token, or an OAuth provider).</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h3>Authorization</h3>
+                        <p><em>"What are you allowed to do?"</em></p>
+                        <p>Once the server knows who you are (you're authenticated), it then checks if you have permission to perform a certain action (e.g., only allowing admins to delete a post).</p>
+                    </div>
+                </div>
+                
+                <p>In this article, we're focusing on authentication, but remember: typically, a real application needs both.</p>
+            </section>
+
+            <section id="authentication-methods">
+                <h2>Authentication Methods</h2>
+
+                <div class="auth-method">
+                    <h3>Session-Based Authentication (Cookie + Server-Side Sessions)</h3>
+                    <h4>How it works:</h4>
+                    <ol>
+                        <li>User submits credentials (username/password) to the server.</li>
+                        <li>The server validates them and, if they're correct, creates a session record in memory or a database.</li>
+                        <li>The server sends back a session identifier (usually a long, random string) in a secure, HTTP-only cookie.</li>
+                        <li>On subsequent requests, the browser automatically includes that cookie; the server looks up the session ID, finds the associated user data, and grants or denies access accordingly.</li>
+                    </ol>
+                    <h4>Key points:</h4>
+                    <ul>
+                        <li>State is stored on the server (the "session store").</li>
+                        <li>Sessions often have an expiration time and can be invalidated server-side.</li>
+                        <li>Because the "authority" is on the server, you can revoke or modify sessions instantly (e.g., when a user logs out).</li>
+                    </ul>
+                </div>
+
+                <div class="auth-method">
+                    <h3>API Keys</h3>
+                    <h4>How it works:</h4>
+                    <ol>
+                        <li>The server issues a unique, opaque string (an API key) to a client or developer.</li>
+                        <li>The client attaches that key—often in a header like x-api-key—with every request.</li>
+                        <li>The server checks that key against its records; if it's valid, it lets the request proceed.</li>
+                    </ol>
+                    <h4>Use cases:</h4>
+                    <ul>
+                        <li>Often used for machine-to-machine calls (e.g., service A talking to service B).</li>
+                        <li>Simpler and less flexible than OAuth or JWT; you can't easily embed user roles or scopes inside it.</li>
+                    </ul>
+                </div>
+
+                <div class="auth-method">
+                    <h3>OAuth 2.0 (Authorization Framework)</h3>
+                    <h4>How it works at a high level:</h4>
+                    <ol>
+                        <li>The user logs in via a trusted identity provider (e.g., Google, Facebook, GitHub) or your own authorization server.</li>
+                        <li>The server obtains an access token (and, optionally, a refresh token).</li>
+                        <li>The client presents the access token with each request to protected resources.</li>
+                        <li>The resource server validates that token with the authorization server before granting access.</li>
+                    </ol>
+                    <h4>Why it's popular:</h4>
+                    <ul>
+                        <li>Allows "single sign-on" experiences and third-party login without sharing passwords.</li>
+                        <li>You can scope tokens so that, for instance, a token granted to read email cannot modify calendar events.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div class="divider"></div>
+
+            <section id="jwt-intro">
+                <p class="jwt-intro-text">
+                    Imagine you need to prove who you are when entering a concert. You show your ticket at the door, they glance at it,
+                    and then let you in—no need for them to call up the ticket office every time. A JSON Web Token (JWT) works similarly online. 
+                    It's like a digitally signed "ticket" that proves you're a valid user so a server (or multiple servers) 
+                    can trust you without checking back with the "ticket office" each time.
+                </p>
+            </section>
+
+            <section id="jwt-explanations">
+                <h2>The "Ticket" Analogy</h2>
+
+                <div class="subsection">
+                    <h3>1. Buying a Ticket (Logging In)</h3>
+                    <ul>
+                        <li>You go to a ticket booth and show your ID. The clerk verifies you, prints a ticket with your name and seat, and stamps it with a special seal.</li>
+                        <li>In JWT terms, when you log in with your username/password, the server verifies you and issues a token containing your user info (your "seat") plus a cryptographic signature (the "stamp").</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>2. Entering the Concert (Making a Request)</h3>
+                    <ul>
+                        <li>You walk up to the concert gate, hand over the ticket. The gate attendant checks the stamp and sees it hasn't been tampered with, then lets you in.</li>
+                        <li>Online, your browser or app sends the JWT along with each request (usually in an HTTP header). The server checks the signature immediately—if it's valid and not expired, you get access.</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>3. No Need to Call the Ticket Office (Statelessness)</h3>
+                    <ul>
+                        <li>Because the ticket has the stamp and all necessary details, the gate doesn't need to call the ticket office each time to confirm you're legit.</li>
+                        <li>Similarly, servers don't need to look up your session in a database on every request. If the JWT is correctly signed, they "trust" its contents right away.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="sealed-envelope">
+                <h2>A Sealed Envelope Analogy</h2>
+
+                <div class="analogy-box">
+                    <h3>Sealed Envelope (Header + Payload + Signature)</h3>
+                    <ul>
+                        <li>Think of a JWT as a small sealed envelope containing two pieces of paper: one (the header) explaining how the seal was made, and the other (the payload) listing who you are and when this envelope expires.</li>
+                        <li>The seal (signature) proves the envelope isn't opened or altered. If someone tries to slip in new info, the seal won't match, and you know it's fake.</li>
+                    </ul>
+
+                    <h3>Why That Matters</h3>
+                    <ul>
+                        <li>Anyone can see what's written inside (it's not secret), but they can't change it without breaking the seal.</li>
+                        <li>This way, multiple "doors" (APIs or services) can each verify the seal themselves without needing a shared database of sessions.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="step-by-step">
+                <h2>Simple, Step-by-Step Example</h2>
+                
+                <div class="jwt-components">
+                    <div class="jwt-component">
+                        <h3>1. Header:</h3>
+                        <ul>
+                            <li>Says, "We used HMAC-SHA256 to seal this."</li>
+                            <li>(In human terms: "I stamped this ticket with a blue ink that only the ticket office has.")</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="jwt-component">
+                        <h3>2. Payload (Claims):</h3>
+                        <ul>
+                            <li>Contains things like:
+                                <ul>
+                                    <li><code>"sub": "user123"</code> (who you are)</li>
+                                    <li><code>"exp": 1710000000</code> (when this token expires)</li>
+                                    <li>Maybe <code>"role": "admin"</code> (your permissions)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="jwt-component">
+                        <h3>3. Signature:</h3>
+                        <ul>
+                            <li>The ticket office takes the header and payload, runs them through a secret stamping process, and produces a unique stamp.</li>
+                            <li>If anyone tries to change "role: admin" to "role: user," the stamp will no longer match, and the seal breaks.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p>So on each request, you send a string looking like:</p>
+                <pre><code class="language-text">&lt;base64url-encoded header&gt;.&lt;base64url-encoded payload&gt;.&lt;signature&gt;</code></pre>
+
+                <p>The server "unscrambles" the header and payload, checks the signature with its secret key, and if everything lines up, trusts who you are and what permissions you have. No calls back to the ticket office are needed until this token expires.</p>
+            </section>
+
+            <section id="official-definition">
+                <h2>Official Definition</h2>
+                <blockquote>
+                    <p>
+                        <strong>JSON Web Token (JWT)</strong> is a compact, URL-safe means of representing claims to be transferred between two parties.
+                        The claims in a JWT are encoded as a JSON object that is used as the payload of a JSON Web Signature (JWS) structure or,
+                        in encrypted form, as the plaintext of a JSON Web Encryption (JWE) structure.
+                    </p>
+                    <cite>Source: IETF RFC 7519</cite>
+                </blockquote>
+            </section>
+
+            <section id="jwt-benefits">
+                <h2>Benefits of using JWTs</h2>
+
+                <div class="benefit-card">
+                    <h3>1. Stateless Authentication</h3>
+                    <div class="benefit-content">
+                        <h4>What it means:</h4>
+                        <p>Once the server issues a JWT, it doesn't need to store any session data on the server side. All the necessary information (user ID, roles, expiration) is encoded directly in the token itself.</p>
+                        
+                        <h4>Why that's helpful:</h4>
+                        <ol>
+                            <li><strong>Scalability:</strong> You can horizontally scale your backend (add more servers) without worrying about synchronizing session stores. Any server can verify the token just by checking its signature.</li>
+                            <li><strong>Simplicity:</strong> No need for a database or in-memory store to keep track of active sessions—reducing infrastructure complexity.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>2. Self-Contained and Portable</h3>
+                    <div class="benefit-content">
+                        <h4>Self-contained:</h4>
+                        <p>A JWT carries all the claims (data) needed to identify a user and their permissions. There's no "lookup" step required beyond verifying the signature and checking the token's expiration.</p>
+                        
+                        <h4>Portable across services:</h4>
+                        <p>Because it's just a signed string, you can pass a JWT between different microservices or domains. Each service can independently verify the token without asking a central identity provider.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>3. Performance Efficiency</h3>
+                    <div class="benefit-content">
+                        <h4>Faster requests:</h4>
+                        <p>Without having to query a session store or database on every request, servers can handle authenticated requests more quickly—just verify the signature, parse the payload, and proceed.</p>
+                        
+                        <h4>Reduced server load:</h4>
+                        <p>Especially in high-traffic scenarios, eliminating database calls for session lookups can significantly reduce latency and resource usage.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>4. Flexibility and Custom Claims</h3>
+                    <div class="benefit-content">
+                        <h4>Customizable payload:</h4>
+                        <p>You can include whatever non-sensitive data you need in the payload: user ID, roles (e.g., <code>"role": "admin"</code>), tenant ID, or even a flag like <code>"isPremiumUser": true</code>.</p>
+                        
+                        <h4>Granular access control:</h4>
+                        <p>Downstream services can read those claims directly from the token to decide whether a user has permission to perform a certain action—no extra database joins needed.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>5. Industry Standard</h3>
+                    <div class="benefit-content">
+                        <h4>Wide language/framework support:</h4>
+                        <p>Almost every modern web framework and language has libraries to create, sign, and verify JWTs. That means less custom code and fewer compatibility headaches.</p>
+                        
+                        <h4>Interoperability:</h4>
+                        <p>If you ever integrate with third-party services or allow external clients (mobile apps, single-page apps, IoT devices), using a standardized token format makes it easier to exchange identity data securely.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>6. Compact and URL-Safe</h3>
+                    <div class="benefit-content">
+                        <h4>Compact size:</h4>
+                        <p>A JWT is just three Base64URL-encoded strings separated by dots. It can comfortably fit inside HTTP headers (e.g., <code>Authorization: Bearer &lt;token&gt;</code>) without bloating your requests.</p>
+                        
+                        <h4>Can go in URLs (if needed):</h4>
+                        <p>While it's more common to send JWTs in headers, you could also pass them as query parameters if there's a very specific need—though headers are recommended for security.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>7. Built-In Expiration and Renewal</h3>
+                    <div class="benefit-content">
+                        <h4>Expiration (<code>exp</code> claim):</h4>
+                        <p>Every JWT has an expiration timestamp. Once that time passes, the token is rejected. This automatically limits the window of validity.</p>
+                        
+                        <h4>Refresh token pattern:</h4>
+                        <p>You can issue a short-lived JWT for regular requests and a separate long-lived "refresh token." If the JWT expires, the client uses the refresh token to request a new JWT—so you get both security and a good user experience.</p>
+                    </div>
+                </div>
+
+                <div class="benefit-card">
+                    <h3>8. Prevents Replay by Signature Verification</h3>
+                    <div class="benefit-content">
+                        <h4>Tamper-proof:</h4>
+                        <p>The cryptographic signature ensures that no one can alter the payload (for example, changing <code>"role": "user"</code> to <code>"role": "admin"</code>) without invalidating the signature.</p>
+                        
+                        <h4>Trust without round-trips:</h4>
+                        <p>Any server with the signing key can check that the token hasn't been tampered with and was indeed issued by a trusted authority. No need to call back to an authentication server on every request.</p>
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <h3>In a Nutshell</h3>
+                    <ol>
+                        <li><strong>Statelessness</strong> means easier scaling and no session store to manage.</li>
+                        <li><strong>Self-Containment</strong> lets you carry all user claims in one neat package.</li>
+                        <li><strong>Performance</strong> improves because there's no database lookup for each request.</li>
+                        <li><strong>Interoperability</strong> is better thanks to a standardized format.</li>
+                        <li><strong>Security</strong> is strong because the token is tamper-evident and expires automatically.</li>
+                    </ol>
+                    <p>Because of these benefits, many teams choose JWT for web and API authentication—especially in microservices, mobile apps, and single-page applications (SPAs) where stateless, cross-domain auth is crucial.</p>
+                </div>
+            </section>
+
+            <section id="jwt-code-examples">
+                <h2>JSON Web Token Implementation</h2>
+
+                <section class="code-section">
+                    <h3>1. Installing and Importing</h3>
+                    <pre><code class="language-bash">npm install jsonwebtoken</code></pre>
+                    <pre><code class="language-javascript">// In your JS file
+import jwt from 'jsonwebtoken';</code></pre>
+                </section>
+
+                <section class="code-section">
+                    <h3>2. Creating (Signing) a Token</h3>
+                    <p>Use <code>jwt.sign(payload, secretOrPrivateKey, [options])</code>:</p>
+                    <pre><code class="language-javascript">// 1. Define a payload (your "claims")
+const payload = {
+  sub: "user123",            // "sub" (subject) is often the user ID
+  role: "admin",             // any custom data you need
+};
+
+// 2. Choose a secret (in real projects, put this in an environment variable)
+const SECRET = "my_super_secret_key";
+
+// 3. Set options (optional)
+const options = {
+  expiresIn: "1h",            // token expires in 1 hour
+  issuer: "my-app",           // "iss" claim: who issued this token
+  audience: "my-audience",    // "aud" claim: who this token is meant for
+  jwtid: "unique-token-id",   // "jti": a unique identifier for this token
+};
+
+// 4. Create the token
+const token = jwt.sign(payload, SECRET, options);
+
+console.log("JWT:", token);
+// → a string like "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...."</code></pre>
+
+                    <div class="info-box">
+                        <h4>Common <code>sign</code> options explained</h4>
+                        <ul>
+                            <li><strong><code>expiresIn</code></strong>: how long until the token's <code>exp</code> timestamp (e.g., <code>"15m"</code>, <code>"2d"</code>, or a number in seconds).</li>
+                            <li><strong><code>issuer</code> (<code>iss</code>)</strong>: a string (often your domain or app name) stating who issued the token.</li>
+                            <li><strong><code>audience</code> (<code>aud</code>)</strong>: a string or array saying who the token is intended for (e.g., your API's URL).</li>
+                            <li><strong><code>subject</code> (<code>sub</code>)</strong>: often the user's unique ID (you can set it here instead of in payload).</li>
+                            <li><strong><code>jwtid</code> (<code>jti</code>)</strong>: an ID you generate if you want a unique identifier per token (useful for revocation).</li>
+                            <li><strong><code>notBefore</code> (<code>nbf</code>)</strong>: date or duration before which the token is not valid (e.g., <code>"10s"</code>, <code>"1h"</code>).</li>
+                            <li><strong><code>algorithm</code> (<code>alg</code>)</strong>: default is <code>"HS256"</code>; change if you're using RSA/EC keys (e.g., <code>"RS256"</code>).</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="code-section">
+                    <h3>3. Verifying a Token</h3>
+                    <p>Use <code>jwt.verify(token, secretOrPublicKey, [options])</code>. This throws an error if the token is invalid or expired; otherwise, it returns the decoded payload.</p>
+                    <pre><code class="language-javascript">const SECRET = "my_super_secret_key";
+const tokenFromClient = "&lt;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&gt;";
+
+// Optionally enforce the same options you used in sign:
+const verifyOptions = {
+  issuer: "my-app",           // ensure token.iss === "my-app"
+  audience: "my-audience",    // ensure token.aud === "my-audience"
+  algorithms: ["HS256"],      // only accept HS256-signed tokens
+};
+
+try {
+  // If valid, returns the decoded payload, e.g. { sub: 'user123', role: 'admin', iat: 170..., exp: 170... }
+  const decoded = jwt.verify(tokenFromClient, SECRET, verifyOptions);
+
+  console.log("Decoded payload:", decoded);
+  // → { sub: "user123", role: "admin", iat: 170..., exp: 170..., iss: "my-app", aud: "my-audience", jti: "unique-token-id" }
+
+  // You can now trust decoded.sub as the user ID, etc.
+} catch (err) {
+  // err.name can be "TokenExpiredError", "JsonWebTokenError", "NotBeforeError"
+  console.error("JWT verification failed:", err.message);
+}</code></pre>
+
+                    <div class="info-box">
+                        <h4>Common <code>verify</code> options</h4>
+                        <ul>
+                            <li><strong><code>issuer</code> (<code>iss</code>)</strong>: require that the token's <code>iss</code> matches this value.</li>
+                            <li><strong><code>audience</code> (<code>aud</code>)</strong>: require that the token's <code>aud</code> matches this.</li>
+                            <li><strong><code>subject</code> (<code>sub</code>)</strong>: require token's <code>sub</code> matches a specific value.</li>
+                            <li><strong><code>algorithms</code></strong>: an array of accepted signing algorithms (e.g., <code>["HS256"]</code>, or <code>["RS256", "HS256"]</code>).</li>
+                            <li><strong><code>clockTolerance</code></strong>: allow a small time skew (in seconds) for <code>exp</code>/<code>nbf</code>.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="code-section">
+                    <h3>4. Decoding a Token (Without Verifying)</h3>
+                    <p>If you just want to inspect the header or payload <strong>without</strong> checking the signature (e.g., for non-sensitive data), use <code>jwt.decode(token, [options])</code>:</p>
+                    <pre><code class="language-javascript">const token = "&lt;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&gt;";
+
+// 1. Get just the payload:
+const payloadOnly = jwt.decode(token);
+console.log("Payload:", payloadOnly);
+// → { sub: "user123", role: "admin", iat: 170..., exp: 170..., iss: "my-app", aud: "my-audience", jti: "unique-token-id" }
+
+// 2. Get the complete decoded token (header + payload):
+const complete = jwt.decode(token, { complete: true });
+console.log("Header:", complete.header);
+console.log("Payload:", complete.payload);
+// → header might be { alg: "HS256", typ: "JWT" }</code></pre>
+
+                    <div class="warning-box">
+                        <p><strong>Warning:</strong> Do <strong>not</strong> use <code>.decode()</code> alone for security checks—anyone can alter the payload, and you won't know if the signature matches. Always use <code>verify()</code> when you need to trust the contents.</p>
+                    </div>
+                </section>
+
+                <section class="code-section">
+                    <h3>5. Quick Reference of JWT Methods</h3>
+                    
+                    <ol>
+                        <li>
+                            <strong><code>jwt.sign(payload, secretOrPrivateKey, [options]) → tokenString</code></strong>
+                            <ul>
+                                <li>Creates a signed JWT.</li>
+                                <li>You'll see <code>iat</code> (issued at) and <code>exp</code> (if you set <code>expiresIn</code>) automatically added to the payload.</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong><code>jwt.verify(token, secretOrPublicKey, [options]) → decodedPayload</code></strong>
+                            <ul>
+                                <li>Throws an error if the token is expired, malformed, or has a bad signature or mismatched claims.</li>
+                                <li>If valid, returns the decoded payload with standard claims (<code>iat</code>, <code>exp</code>, etc.) plus whatever you put inside.</li>
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <strong><code>jwt.decode(token, [options]) → decodedPayload or { header, payload, signature }</code></strong>
+                            <ul>
+                                <li>Does not check signature.</li>
+                                <li>Use only for non-security-critical inspections.</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </section>
+
+                <section class="code-summary">
+                    <h3>Summary</h3>
+                    
+                    <div class="code-box">
+                        <h4>Sign:</h4>
+                        <pre><code class="language-javascript">const token = jwt.sign(
+  { sub: "user123", role: "admin" },
+  "your_secret_here",
+  { expiresIn: "2h", issuer: "my-app", audience: "my-audience" }
+);</code></pre>
+                    </div>
+                    
+                    <div class="code-box">
+                        <h4>Verify:</h4>
+                        <pre><code class="language-javascript">try {
+  const decoded = jwt.verify(
+    token,
+    "your_secret_here",
+    { issuer: "my-app", audience: "my-audience", algorithms: ["HS256"] }
+  );
+  // decoded.sub, decoded.role, etc. are now trusted
+} catch (err) {
+  // handle invalid or expired token
+}</code></pre>
+                    </div>
+                    
+                    <div class="code-box">
+                        <h4>Decode (no verification):</h4>
+                        <pre><code class="language-javascript">const payload = jwt.decode(token);</code></pre>
+                    </div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Introduction to JWT Authentication</p>
+        </div>
+    </footer>
+</body>
+</html>
