@@ -1,5 +1,0 @@
-1.) Create a Directory (done)
-2.) Create Index.js File 
-3.) Initialize Node Package Manager (NPM)(done)
-4.) Install the Express Package (npm install express) (done)
-5.) Start the Server (done)
